@@ -26,7 +26,33 @@ tasks {
     shadowJar {
         archiveClassifier.set("")
         relocate("org.bstats", "dev.coughlin.deathban.metrics.bstats")
-        minimize()
+
+        // Exclude unused Kotlin packages to reduce JAR size
+        exclude("kotlin/coroutines/**")
+        exclude("kotlin/streams/**")
+        exclude("kotlin/js/**")
+        exclude("kotlin/time/**")
+        exclude("kotlin/random/**")
+        exclude("kotlin/concurrent/**")
+        exclude("kotlin/contracts/**")
+        exclude("kotlin/experimental/**")
+        exclude("kotlin/enums/**")
+        exclude("kotlin/properties/**")
+        exclude("kotlin/system/**")
+        exclude("kotlin/math/**")
+        exclude("kotlin/sequences/**")
+        exclude("kotlin/io/**")
+        exclude("kotlin/reflect/**")
+        exclude("kotlin/jdk7/**")
+        exclude("DebugProbesKt.bin")
+        exclude("META-INF/versions/**")
+        exclude("META-INF/*.kotlin_module")
+        exclude("META-INF/maven/**")
+
+        minimize {
+            // Keep bStats classes as they're loaded via reflection
+            exclude(dependency("org.bstats:.*"))
+        }
     }
 
     build {
