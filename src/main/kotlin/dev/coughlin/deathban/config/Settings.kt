@@ -4,22 +4,22 @@ import dev.coughlin.deathban.util.TimeUtil
 import org.bukkit.configuration.file.FileConfiguration
 import java.time.Duration
 
-class Settings(config: FileConfiguration) {
+class Settings(config: FileConfiguration) : OffenseConfig {
 
     val debug: Boolean = config.getBoolean("debug", false)
     val updateCheck: Boolean = config.getBoolean("update-check", true)
     val metrics: Boolean = config.getBoolean("metrics", true)
 
-    val rollingWindowEnabled: Boolean = config.getBoolean("rolling-window.enabled", true)
-    val rollingWindowDuration: Duration = TimeUtil.parseDuration(
+    override val rollingWindowEnabled: Boolean = config.getBoolean("rolling-window.enabled", true)
+    override val rollingWindowDuration: Duration = TimeUtil.parseDuration(
         config.getString("rolling-window.duration") ?: "24h"
     )
-    val maxDeathsInWindow: Int = config.getInt("rolling-window.max-deaths", 3)
+    override val maxDeathsInWindow: Int = config.getInt("rolling-window.max-deaths", 3)
 
     val banDurations: Map<Int, Duration> = loadBanDurations(config)
 
-    val offenseResetEnabled: Boolean = config.getBoolean("offense-reset.enabled", true)
-    val offenseResetPeriod: Duration = TimeUtil.parseDuration(
+    override val offenseResetEnabled: Boolean = config.getBoolean("offense-reset.enabled", true)
+    override val offenseResetPeriod: Duration = TimeUtil.parseDuration(
         config.getString("offense-reset.clean-period") ?: "168h"
     )
 

@@ -15,6 +15,11 @@ repositories {
 dependencies {
     compileOnly("org.spigotmc:spigot-api:1.21.1-R0.1-SNAPSHOT")
     implementation("org.bstats:bstats-bukkit:3.0.2")
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation("io.mockk:mockk:1.13.9")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks {
@@ -32,6 +37,10 @@ tasks {
         filesMatching("plugin.yml") {
             expand("version" to version)
         }
+    }
+
+    test {
+        useJUnitPlatform()
     }
 }
 

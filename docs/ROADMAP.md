@@ -58,24 +58,24 @@ Basic player statistics tracking.
 
 ### Phase 1: Core Plugin (Weeks 1-2)
 
-- [ ] Project setup (Gradle, Kotlin, structure)
-- [ ] Configuration system (config.yml, messages.yml)
-- [ ] Player data persistence (YAML per-player)
-- [ ] Death event handling
-- [ ] Rolling window calculation
-- [ ] Ban application and enforcement
-- [ ] Login rejection for banned players
-- [ ] Basic commands (check, reset, pardon, reload)
-- [ ] Tab completion
-- [ ] bStats integration
-- [ ] Update checker
+- [x] Project setup (Gradle, Kotlin, structure)
+- [x] Configuration system (config.yml, messages.yml)
+- [x] Player data persistence (YAML per-player)
+- [x] Death event handling
+- [x] Rolling window calculation
+- [x] Ban application and enforcement
+- [x] Login rejection for banned players
+- [x] Basic commands (check, reset, pardon, reload)
+- [x] Tab completion
+- [x] bStats integration
+- [x] Update checker
 
 **Deliverable:** Fully functional individual mode
 
 ### Phase 2: Polish & Extras (Week 3)
 
-- [ ] Comprehensive testing (manual + MockBukkit)
-- [ ] Edge case handling (crashes, concurrent events)
+- [x] Comprehensive testing (manual + MockBukkit)
+- [x] Edge case handling (crashes, concurrent events)
 - [ ] Performance optimization
 - [ ] Documentation (config comments, wiki pages)
 - [ ] SpigotMC listing preparation

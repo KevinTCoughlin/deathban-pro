@@ -1,10 +1,10 @@
 package dev.coughlin.deathban.manager
 
-import dev.coughlin.deathban.config.Settings
+import dev.coughlin.deathban.config.OffenseConfig
 import dev.coughlin.deathban.data.PlayerData
 import java.time.Instant
 
-class OffenseManager(private val settings: Settings) {
+class OffenseManager(private val settings: OffenseConfig) {
 
     fun getDeathsInWindow(data: PlayerData): Int {
         if (!settings.rollingWindowEnabled) {
