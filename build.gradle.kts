@@ -28,6 +28,7 @@ tasks {
         relocate("org.bstats", "dev.coughlin.deathban.metrics.bstats")
 
         // Exclude unused Kotlin packages to reduce JAR size
+        // Note: Keep kotlin/enums (needed for enum support)
         exclude("kotlin/coroutines/**")
         exclude("kotlin/streams/**")
         exclude("kotlin/js/**")
@@ -36,7 +37,6 @@ tasks {
         exclude("kotlin/concurrent/**")
         exclude("kotlin/contracts/**")
         exclude("kotlin/experimental/**")
-        exclude("kotlin/enums/**")
         exclude("kotlin/properties/**")
         exclude("kotlin/system/**")
         exclude("kotlin/math/**")
