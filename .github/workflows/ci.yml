@@ -31,14 +31,14 @@ jobs:
         run: ./gradlew test --no-daemon
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: test-results
           path: build/reports/tests/
 
       - name: Upload JAR
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: plugin-jar
           path: build/libs/*.jar
