@@ -1,0 +1,47 @@
+# DeathBan Pro Configuration
+# https://github.com/kevintcoughlin/deathban-pro
+
+# Enable debug logging
+debug: false
+
+# Check for updates on startup
+update-check: true
+
+# Enable bStats metrics (anonymous usage statistics)
+metrics: true
+
+# Rolling Window Configuration
+# Deaths within this time period count toward the ban threshold
+rolling-window:
+  enabled: true
+  # Duration format: 1h, 6h, 24h, 7d, etc.
+  duration: 24h
+  # Number of deaths within the window that triggers a ban
+  max-deaths: 3
+
+# Ban durations by offense level
+# Each subsequent offense results in a longer ban
+# Format: offense-level: duration
+ban-durations:
+  1: 1h      # First offense: 1 hour
+  2: 6h      # Second offense: 6 hours
+  3: 24h    # Third offense: 24 hours
+  4: 72h    # Fourth offense: 3 days
+  5: 168h   # Fifth+ offense: 1 week
+
+# Offense level reset
+# After playing without dying for this period, offense level resets to 0
+offense-reset:
+  enabled: true
+  # How long without dying before offense level resets
+  clean-period: 168h  # 7 days
+
+# World configuration
+# Leave enabled-worlds empty to enable in all worlds
+# Use disabled-worlds to exclude specific worlds
+enabled-worlds: []
+disabled-worlds:
+  - world_lobby
+
+# Permission to bypass death bans
+bypass-permission: deathban.bypass

@@ -1,0 +1,39 @@
+name: DeathBanPro
+version: ${version}
+main: dev.coughlin.deathban.DeathBanPlugin
+api-version: '1.21'
+description: Hardcore-style death penalties with escalating bans
+author: kevintcoughlin
+website: https://github.com/kevintcoughlin/deathban-pro
+
+commands:
+  deathban:
+    description: DeathBan Pro main command
+    usage: /<command> [check|reset|pardon|reload] [player]
+    aliases: [db, dban]
+
+permissions:
+  deathban.*:
+    description: Full access to DeathBan Pro
+    default: op
+    children:
+      deathban.use: true
+      deathban.check: true
+      deathban.check.others: true
+      deathban.admin: true
+      deathban.bypass: true
+  deathban.use:
+    description: Basic plugin access
+    default: true
+  deathban.check:
+    description: Check own death ban status
+    default: true
+  deathban.check.others:
+    description: Check other players' death ban status
+    default: op
+  deathban.admin:
+    description: Administrative commands (reset, pardon, reload)
+    default: op
+  deathban.bypass:
+    description: Bypass death bans entirely
+    default: op

@@ -1,0 +1,48 @@
+# DeathBan Pro Messages
+# Supports legacy color codes (&c, &a, etc.)
+# Placeholders: {player}, {duration}, {offense_level}, {deaths}, {max}, {return_time}, {remaining}
+
+prefix: "&8[&cDeathBan&8]&r "
+
+ban:
+  title: "&c&lYOU DIED"
+  subtitle: "&7Banned for &e{duration}"
+  kick-message: |
+    &c&lDeath Ban
+    
+    &7You have been temporarily banned for dying.
+    &7Duration: &e{duration}
+    &7Offense Level: &c{offense_level}
+    
+    &7Return: &a{return_time}
+
+return:
+  title: "&a&lWELCOME BACK"
+  subtitle: "&7Your ban has expired"
+  message: "&aYou have returned from your death ban. Be careful!"
+
+warnings:
+  final-life: "&c&lWARNING: &7This is your final life! Next death = ban."
+  near-limit: "&e&lCAUTION: &7{remaining} lives remaining in this period."
+
+commands:
+  help: |
+    &6&lDeathBan Pro Commands
+    &e/deathban check [player] &7- Check ban status
+    &e/deathban reset <player> &7- Reset offense data
+    &e/deathban pardon <player> &7- Remove active ban
+    &e/deathban reload &7- Reload configuration
+  check-self: "&7Your offense level: &e{offense_level}&7, Deaths in window: &e{deaths}/{max}"
+  check-other: "&7{player}'s offense level: &e{offense_level}&7, Deaths: &e{deaths}/{max}"
+  check-banned: "&c{player} is currently banned. Returns: &e{return_time}"
+  reset-success: "&aReset offense data for &e{player}"
+  pardon-success: "&aPardoned &e{player}&a - they can rejoin now"
+  pardon-not-banned: "&c{player} is not currently banned"
+  pardon-notification: "&aYou have been pardoned by an admin. Welcome back!"
+  reload-success: "&aConfiguration reloaded"
+
+errors:
+  no-permission: "&cYou don't have permission to do that."
+  player-not-found: "&cPlayer not found: {player}"
+  invalid-usage: "&cUsage: {usage}"
+  console-only-player: "&cThis command can only be used by players."
