@@ -11,6 +11,7 @@ import dev.coughlin.deathban.listener.JoinListener
 import dev.coughlin.deathban.manager.BanManager
 import dev.coughlin.deathban.manager.OffenseManager
 import dev.coughlin.deathban.manager.SharedLivesManager
+import dev.coughlin.deathban.theme.ThemeManager
 import dev.coughlin.deathban.util.ColorUtil
 import dev.coughlin.deathban.util.UpdateChecker
 import org.bstats.bukkit.Metrics
@@ -39,6 +40,9 @@ class DeathBanPlugin : JavaPlugin() {
     var sharedLivesManager: SharedLivesManager? = null
         private set
 
+    lateinit var themeManager: ThemeManager
+        private set
+
     private lateinit var joinListener: JoinListener
     private var updateNotification: String? = null
 
@@ -50,6 +54,12 @@ class DeathBanPlugin : JavaPlugin() {
         // Initialize configuration
         settings = Settings(config)
         messages = Messages(File(dataFolder, "messages.yml"))
+
+        // Initialize theme manager
+        themeManager = ThemeManager(dataFolder, logger)
+        if (!themeManager.setActiveTheme(settings.themeId)) {
+            logger.warning("Theme '${settings.themeId}' not found, using default")
+        }
 
         // Initialize data manager
         dataManager = PlayerDataManager(dataFolder, logger)
@@ -88,6 +98,7 @@ class DeathBanPlugin : JavaPlugin() {
 
         logger.info("DeathBan Pro v${description.version} enabled!")
         logger.info("Mode: ${settings.mode.name.lowercase()}")
+        logger.info("Theme: ${themeManager.getActiveTheme().name}")
         if (settings.mode == BanMode.INDIVIDUAL) {
             logger.info("Rolling window: ${if (settings.rollingWindowEnabled) "enabled" else "disabled"}")
             logger.info("Max deaths before ban: ${settings.maxDeathsInWindow}")
@@ -105,7 +116,10 @@ class DeathBanPlugin : JavaPlugin() {
         reloadConfig()
         settings = Settings(config)
         messages.reload()
+        themeManager.reload()
+        themeManager.setActiveTheme(settings.themeId)
         dataManager.clearCache()
+        sharedLivesManager?.reload()
     }
 
     private fun registerListeners() {
@@ -121,7 +135,7 @@ class DeathBanPlugin : JavaPlugin() {
     private fun registerCommands() {
         val command = getCommand("deathban") ?: return
         val executor = DeathBanCommand(this, messages, dataManager, offenseManager, banManager)
-        val tabCompleter = DeathBanTabCompleter(dataManager, banManager)
+        val tabCompleter = DeathBanTabCompleter(this, dataManager, banManager)
 
         command.setExecutor(executor)
         command.tabCompleter = tabCompleter
@@ -132,6 +146,10 @@ class DeathBanPlugin : JavaPlugin() {
 
         metrics.addCustomChart(SimplePie("ban_mode") {
             settings.mode.name.lowercase()
+        })
+
+        metrics.addCustomChart(SimplePie("active_theme") {
+            themeManager.getActiveThemeId()
         })
 
         metrics.addCustomChart(SimplePie("rolling_window") {

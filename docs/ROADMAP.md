@@ -95,17 +95,18 @@ Basic player statistics tracking.
 
 ### Phase 4: Theme System (Week 6)
 
-- [ ] Theme interface and loader
-- [ ] External JAR theme loading
-- [ ] Default theme implementation
-- [ ] Theme switching command
+- [x] Theme interface and loader
+- [x] External JAR theme loading
+- [x] Default theme implementation
+- [x] Halloween theme (built-in)
+- [x] Theme switching command
 - [ ] Documentation for theme creators
 
 **Deliverable:** v1.2.0 with theme support
 
 ### Phase 5: Premium Themes (Ongoing)
 
-- [ ] Halloween theme ($3)
+- [x] Halloween theme (built-in)
 - [ ] Winter/Holiday theme ($3)
 - [ ] Spring theme ($3)
 - [ ] Summer theme ($3)

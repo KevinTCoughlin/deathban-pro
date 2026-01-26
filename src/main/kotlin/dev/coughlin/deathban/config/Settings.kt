@@ -46,6 +46,11 @@ class Settings(config: FileConfiguration) : OffenseConfig {
 
     val bypassPermission: String = config.getString("bypass-permission") ?: "deathban.bypass"
 
+    // Theme configuration
+    val themeId: String = config.getString("theme") ?: "default"
+    val themeSoundsEnabled: Boolean = config.getBoolean("theme-sounds", true)
+    val themeParticlesEnabled: Boolean = config.getBoolean("theme-particles", true)
+
     private fun loadBanDurations(config: FileConfiguration): Map<Int, Duration> {
         val section = config.getConfigurationSection("ban-durations") ?: return defaultBanDurations()
         return section.getKeys(false).associate { key ->

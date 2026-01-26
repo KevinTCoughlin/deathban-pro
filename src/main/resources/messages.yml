@@ -64,6 +64,15 @@ shared-lives:
 
     &7Return: &a{return_time}
 
+theme:
+  current: "&7Current theme: &e{theme}"
+  available: "&7Available: &f{themes}"
+  list-header: "&6&lAvailable Themes:"
+  list-item: "&8- &e{id} &7({name} by {author}){active}"
+  set-success: "&aTheme changed to: &e{theme}"
+  not-found: "&cTheme not found: {id}"
+  preview: "&7Previewing theme: &e{theme}"
+
 errors:
   no-permission: "&cYou don't have permission to do that."
   player-not-found: "&cPlayer not found: {player}"

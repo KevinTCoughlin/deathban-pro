@@ -1,5 +1,6 @@
 package dev.coughlin.deathban.command
 
+import dev.coughlin.deathban.DeathBanPlugin
 import dev.coughlin.deathban.data.PlayerDataManager
 import dev.coughlin.deathban.manager.BanManager
 import org.bukkit.Bukkit
@@ -8,6 +9,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.command.TabCompleter
 
 class DeathBanTabCompleter(
+    private val plugin: DeathBanPlugin,
     private val dataManager: PlayerDataManager,
     private val banManager: BanManager
 ) : TabCompleter {
@@ -21,6 +23,7 @@ class DeathBanTabCompleter(
         return when (args.size) {
             1 -> filterStartsWith(getSubcommands(sender), args[0])
             2 -> filterStartsWith(getSecondArg(sender, args[0]), args[1])
+            3 -> filterStartsWith(getThirdArg(sender, args[0], args[1]), args[2])
             else -> emptyList()
         }
     }
@@ -32,6 +35,7 @@ class DeathBanTabCompleter(
             if (sender.hasPermission("deathban.use")) {
                 add("lives")
                 add("team")
+                add("theme")
             }
             if (sender.hasPermission("deathban.admin")) {
                 add("reset")
@@ -59,6 +63,22 @@ class DeathBanTabCompleter(
 
             "team" -> listOf("create", "join", "leave")
 
+            "theme" -> buildList {
+                add("list")
+                if (sender.hasPermission("deathban.admin")) add("set")
+                add("preview")
+            }
+
+            else -> emptyList()
+        }
+    }
+
+    fun getThirdArg(sender: CommandSender, subcommand: String, secondArg: String): List<String> {
+        return when (subcommand.lowercase()) {
+            "theme" -> when (secondArg.lowercase()) {
+                "set", "preview" -> plugin.themeManager.getAvailableThemeIds()
+                else -> emptyList()
+            }
             else -> emptyList()
         }
     }

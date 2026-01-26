@@ -67,3 +67,17 @@ disabled-worlds:
 
 # Permission to bypass death bans
 bypass-permission: deathban.bypass
+
+# =============================================================================
+# THEME CONFIGURATION
+# =============================================================================
+# Active theme ID
+# Built-in themes: "default", "halloween"
+# External themes: place JAR files in plugins/DeathBanPro/themes/
+theme: default
+
+# Enable sound effects from themes
+theme-sounds: true
+
+# Enable particle effects from themes
+theme-particles: true

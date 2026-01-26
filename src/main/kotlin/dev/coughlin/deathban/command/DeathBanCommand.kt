@@ -31,9 +31,10 @@ class DeathBanCommand(
             "pardon" -> return handlePardon(sender, args)
             "lives" -> return handleLives(sender, args)
             "team" -> return handleTeam(sender, args)
+            "theme" -> return handleTheme(sender, args)
             "reload" -> return handleReload(sender)
             else -> {
-                sender.sendMessage(messages.getInvalidUsage("/deathban <check|reset|pardon|lives|reload>"))
+                sender.sendMessage(messages.getInvalidUsage("/deathban <check|reset|pardon|lives|theme|reload>"))
                 return true
             }
         }
@@ -288,6 +289,80 @@ class DeathBanCommand(
             }
             else -> {
                 sender.sendMessage(messages.getInvalidUsage("/deathban team <create|join|leave> [name]"))
+            }
+        }
+        return true
+    }
+
+    private fun handleTheme(sender: CommandSender, args: Array<String>): Boolean {
+        if (!sender.hasPermission("deathban.use")) {
+            sender.sendMessage(messages.getNoPermission())
+            return true
+        }
+
+        val themeManager = plugin.themeManager
+
+        // /deathban theme - show current theme and list available
+        if (args.size == 1) {
+            val active = themeManager.getActiveTheme()
+            val available = themeManager.getAvailableThemeIds()
+            sender.sendMessage(messages.prefixed("theme.current", "theme" to active.name))
+            sender.sendMessage(messages.get("theme.available", "themes" to available.joinToString(", ")))
+            return true
+        }
+
+        when (args[1].lowercase()) {
+            "list" -> {
+                val themes = themeManager.getAllThemes()
+                sender.sendMessage(messages.prefixed("theme.list-header"))
+                themes.forEach { theme ->
+                    val active = if (theme.id == themeManager.getActiveThemeId()) " &a(active)" else ""
+                    sender.sendMessage(messages.get("theme.list-item",
+                        "id" to theme.id,
+                        "name" to theme.name,
+                        "author" to theme.author,
+                        "active" to active
+                    ))
+                }
+            }
+            "set" -> {
+                if (!sender.hasPermission("deathban.admin")) {
+                    sender.sendMessage(messages.getNoPermission())
+                    return true
+                }
+                if (args.size < 3) {
+                    sender.sendMessage(messages.getInvalidUsage("/deathban theme set <id>"))
+                    return true
+                }
+                val themeId = args[2].lowercase()
+                if (themeManager.setActiveTheme(themeId)) {
+                    sender.sendMessage(messages.prefixed("theme.set-success", "theme" to themeManager.getActiveTheme().name))
+                    plugin.logger.info("${sender.name} changed theme to: $themeId")
+                } else {
+                    sender.sendMessage(messages.prefixed("theme.not-found", "id" to themeId))
+                }
+            }
+            "preview" -> {
+                if (sender !is Player) {
+                    sender.sendMessage(messages.get("errors.console-only-player"))
+                    return true
+                }
+                if (args.size < 3) {
+                    sender.sendMessage(messages.getInvalidUsage("/deathban theme preview <id>"))
+                    return true
+                }
+                val themeId = args[2].lowercase()
+                val theme = themeManager.getTheme(themeId)
+                if (theme == null) {
+                    sender.sendMessage(messages.prefixed("theme.not-found", "id" to themeId))
+                    return true
+                }
+                // Show preview
+                sender.sendTitle(theme.getBanTitle(), theme.getBanSubtitle("1h 30m"), 10, 70, 20)
+                sender.sendMessage(messages.prefixed("theme.preview", "theme" to theme.name))
+            }
+            else -> {
+                sender.sendMessage(messages.getInvalidUsage("/deathban theme [list|set <id>|preview <id>]"))
             }
         }
         return true
