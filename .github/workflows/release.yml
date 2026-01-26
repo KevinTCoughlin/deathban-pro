@@ -41,7 +41,7 @@ jobs:
           mv build/libs/*.jar build/libs/DeathBanPro-${{ steps.get_version.outputs.VERSION }}.jar
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: build/libs/DeathBanPro-*.jar
           generate_release_notes: true
