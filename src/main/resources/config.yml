@@ -10,6 +10,28 @@ update-check: true
 # Enable bStats metrics (anonymous usage statistics)
 metrics: true
 
+# =============================================================================
+# MODE CONFIGURATION
+# =============================================================================
+# Mode: "individual" or "shared"
+# - individual: Each player has their own death counter and ban escalation
+# - shared: Server or team shares a pool of lives; when pool is empty, deaths trigger bans
+mode: individual
+
+# Shared Lives Configuration (only used when mode: shared)
+shared-lives:
+  # Starting lives for a new pool
+  default-lives: 10
+  # Maximum lives a pool can hold
+  max-lives: 20
+  # Allow players to create team pools (vs just using global pool)
+  allow-teams: true
+  # Ban duration when shared pool is empty and player dies
+  empty-pool-ban: 1h
+
+# =============================================================================
+# ROLLING WINDOW (Individual Mode)
+# =============================================================================
 # Rolling Window Configuration
 # Deaths within this time period count toward the ban threshold
 rolling-window:

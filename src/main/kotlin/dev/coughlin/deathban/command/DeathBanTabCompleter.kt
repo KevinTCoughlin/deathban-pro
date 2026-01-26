@@ -29,6 +29,10 @@ class DeathBanTabCompleter(
         return buildList {
             add("help")
             if (sender.hasPermission("deathban.check")) add("check")
+            if (sender.hasPermission("deathban.use")) {
+                add("lives")
+                add("team")
+            }
             if (sender.hasPermission("deathban.admin")) {
                 add("reset")
                 add("pardon")
@@ -50,6 +54,10 @@ class DeathBanTabCompleter(
             "pardon" -> if (sender.hasPermission("deathban.admin")) {
                 getBannedPlayerNames()
             } else emptyList()
+
+            "lives" -> listOf("add", "set")
+
+            "team" -> listOf("create", "join", "leave")
 
             else -> emptyList()
         }

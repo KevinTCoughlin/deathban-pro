@@ -4,8 +4,11 @@ Hardcore-style death penalties for Minecraft servers. When players die, they rec
 
 ## Features
 
+- **Two Modes**: Individual (per-player tracking) or Shared (pooled server/team lives)
 - **Rolling Death Window** - Deaths only count within a configurable time period (default: 24 hours)
 - **Escalating Bans** - Each offense results in longer ban durations
+- **Shared Lives** - Server or team shares a pool of lives; when empty, deaths trigger bans
+- **Team Pools** - Create team-based life pools for group play
 - **Offense Reset** - Play safely for a period to reset your offense level
 - **World Configuration** - Enable/disable in specific worlds
 - **Full Customization** - All messages, durations, and thresholds are configurable
@@ -29,6 +32,12 @@ Hardcore-style death penalties for Minecraft servers. When players die, they rec
 |---------|-------------|------------|
 | `/deathban` | Show help | `deathban.use` |
 | `/deathban check [player]` | Check ban status | `deathban.check` / `deathban.check.others` |
+| `/deathban lives` | Check shared lives pool | `deathban.use` |
+| `/deathban lives add` | Add a life to the pool | `deathban.use` |
+| `/deathban lives set <n>` | Set pool lives (admin) | `deathban.admin` |
+| `/deathban team create <name>` | Create a team pool | `deathban.use` |
+| `/deathban team join <name>` | Join a team pool | `deathban.use` |
+| `/deathban team leave` | Leave your team pool | `deathban.use` |
 | `/deathban reset <player>` | Reset offense data | `deathban.admin` |
 | `/deathban pardon <player>` | Remove active ban | `deathban.admin` |
 | `/deathban reload` | Reload configuration | `deathban.admin` |
@@ -46,6 +55,16 @@ Hardcore-style death penalties for Minecraft servers. When players die, they rec
 ## Configuration
 
 ```yaml
+# Mode: "individual" or "shared"
+mode: individual
+
+# Shared Lives (when mode: shared)
+shared-lives:
+  default-lives: 10
+  max-lives: 20
+  allow-teams: true
+  empty-pool-ban: 1h
+
 # Rolling window - deaths within this period count toward ban
 rolling-window:
   enabled: true

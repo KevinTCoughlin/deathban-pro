@@ -29,9 +29,11 @@ class DeathBanCommand(
             "check" -> return handleCheck(sender, args)
             "reset" -> return handleReset(sender, args)
             "pardon" -> return handlePardon(sender, args)
+            "lives" -> return handleLives(sender, args)
+            "team" -> return handleTeam(sender, args)
             "reload" -> return handleReload(sender)
             else -> {
-                sender.sendMessage(messages.getInvalidUsage("/deathban <check|reset|pardon|reload>"))
+                sender.sendMessage(messages.getInvalidUsage("/deathban <check|reset|pardon|lives|reload>"))
                 return true
             }
         }
@@ -157,6 +159,136 @@ class DeathBanCommand(
             plugin.logger.info("${sender.name} pardoned $targetName")
         } else {
             sender.sendMessage(messages.getPardonNotBanned(targetName))
+        }
+        return true
+    }
+
+    private fun handleLives(sender: CommandSender, args: Array<String>): Boolean {
+        if (!sender.hasPermission("deathban.use")) {
+            sender.sendMessage(messages.getNoPermission())
+            return true
+        }
+
+        val manager = plugin.sharedLivesManager
+        if (manager == null) {
+            sender.sendMessage(messages.prefixed("errors.no-permission"))
+            return true
+        }
+
+        // /deathban lives - show pool status
+        if (args.size == 1) {
+            val pool = if (sender is Player) {
+                manager.getPoolForPlayer(sender.uniqueId) ?: manager.getGlobalPool()
+            } else {
+                manager.getGlobalPool()
+            }
+            sender.sendMessage(messages.getPoolStatus(pool.id, pool.lives, pool.maxLives))
+            return true
+        }
+
+        when (args[1].lowercase()) {
+            "add" -> {
+                if (sender !is Player) {
+                    sender.sendMessage(messages.get("errors.console-only-player"))
+                    return true
+                }
+                val pool = manager.getPoolForPlayer(sender.uniqueId) ?: manager.getGlobalPool()
+                if (manager.addLife(sender.uniqueId)) {
+                    sender.sendMessage(messages.getLifeAdded(pool.lives, pool.maxLives))
+                } else {
+                    sender.sendMessage(messages.getPoolFull(pool.maxLives))
+                }
+            }
+            "set" -> {
+                if (!sender.hasPermission("deathban.admin")) {
+                    sender.sendMessage(messages.getNoPermission())
+                    return true
+                }
+                if (args.size < 3) {
+                    sender.sendMessage(messages.getInvalidUsage("/deathban lives set <amount>"))
+                    return true
+                }
+                val amount = args[2].toIntOrNull()
+                if (amount == null || amount < 0) {
+                    sender.sendMessage(messages.getInvalidUsage("/deathban lives set <amount>"))
+                    return true
+                }
+                val pool = manager.getGlobalPool()
+                pool.lives = amount.coerceAtMost(pool.maxLives)
+                manager.save()
+                sender.sendMessage(messages.getPoolStatus(pool.id, pool.lives, pool.maxLives))
+            }
+            else -> {
+                sender.sendMessage(messages.getInvalidUsage("/deathban lives [add|set <amount>]"))
+            }
+        }
+        return true
+    }
+
+    private fun handleTeam(sender: CommandSender, args: Array<String>): Boolean {
+        if (sender !is Player) {
+            sender.sendMessage(messages.get("errors.console-only-player"))
+            return true
+        }
+
+        if (!sender.hasPermission("deathban.use")) {
+            sender.sendMessage(messages.getNoPermission())
+            return true
+        }
+
+        val manager = plugin.sharedLivesManager
+        if (manager == null) {
+            sender.sendMessage(messages.prefixed("errors.no-permission"))
+            return true
+        }
+
+        if (!plugin.settings.sharedLivesAllowTeams) {
+            sender.sendMessage(messages.getTeamsDisabled())
+            return true
+        }
+
+        if (args.size < 2) {
+            sender.sendMessage(messages.getInvalidUsage("/deathban team <create|join|leave> [name]"))
+            return true
+        }
+
+        when (args[1].lowercase()) {
+            "create" -> {
+                if (args.size < 3) {
+                    sender.sendMessage(messages.getInvalidUsage("/deathban team create <name>"))
+                    return true
+                }
+                val teamName = args[2].lowercase()
+                val pool = manager.createTeamPool(teamName, sender.uniqueId)
+                if (pool != null) {
+                    sender.sendMessage(messages.getTeamCreated(teamName))
+                } else {
+                    sender.sendMessage(messages.getTeamExists())
+                }
+            }
+            "join" -> {
+                if (args.size < 3) {
+                    sender.sendMessage(messages.getInvalidUsage("/deathban team join <name>"))
+                    return true
+                }
+                val teamName = args[2].lowercase()
+                if (manager.getPool(teamName) == null) {
+                    sender.sendMessage(messages.getTeamNotFound(teamName))
+                    return true
+                }
+                manager.joinPool(sender.uniqueId, teamName)
+                sender.sendMessage(messages.getTeamJoined(teamName))
+            }
+            "leave" -> {
+                if (manager.leavePool(sender.uniqueId)) {
+                    sender.sendMessage(messages.getTeamLeft())
+                } else {
+                    sender.sendMessage(messages.getNoPool())
+                }
+            }
+            else -> {
+                sender.sendMessage(messages.getInvalidUsage("/deathban team <create|join|leave> [name]"))
+            }
         }
         return true
     }

@@ -85,11 +85,11 @@ Basic player statistics tracking.
 
 ### Phase 3: Shared Lives Mode (Weeks 4-5)
 
-- [ ] Shared lives pool system
-- [ ] Team-based pools (optional)
-- [ ] Life contribution/withdrawal commands
-- [ ] Pool status display
-- [ ] Integration with individual mode toggle
+- [x] Shared lives pool system
+- [x] Team-based pools (optional)
+- [x] Life contribution/withdrawal commands
+- [x] Pool status display
+- [x] Integration with individual mode toggle
 
 **Deliverable:** v1.1.0 with shared lives
 

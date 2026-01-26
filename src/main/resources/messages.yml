@@ -31,6 +31,8 @@ commands:
     &e/deathban check [player] &7- Check ban status
     &e/deathban reset <player> &7- Reset offense data
     &e/deathban pardon <player> &7- Remove active ban
+    &e/deathban lives &7- Check shared lives pool
+    &e/deathban lives add &7- Add a life to the pool
     &e/deathban reload &7- Reload configuration
   check-self: "&7Your offense level: &e{offense_level}&7, Deaths in window: &e{deaths}/{max}"
   check-other: "&7{player}'s offense level: &e{offense_level}&7, Deaths: &e{deaths}/{max}"
@@ -40,6 +42,27 @@ commands:
   pardon-not-banned: "&c{player} is not currently banned"
   pardon-notification: "&aYou have been pardoned by an admin. Welcome back!"
   reload-success: "&aConfiguration reloaded"
+
+shared-lives:
+  pool-status: "&7Shared Lives Pool &8(&e{pool}&8)&7: &a{lives}&7/&e{max}"
+  life-added: "&aYou added a life to the pool! &7({lives}/{max})"
+  life-consumed: "&cA life was consumed. &7Remaining: &e{lives}/{max}"
+  pool-empty: "&c&lPOOL EMPTY! &7The shared lives pool is depleted."
+  pool-full: "&cThe pool is already full ({max} lives)."
+  no-pool: "&cYou are not in a shared lives pool."
+  team-created: "&aTeam pool '&e{team}&a' created!"
+  team-joined: "&aYou joined team '&e{team}&a'."
+  team-left: "&eYou left your team pool."
+  team-exists: "&cA team with that name already exists."
+  team-not-found: "&cTeam not found: {team}"
+  teams-disabled: "&cTeam pools are disabled on this server."
+  kick-message: |
+    &c&lDeath Ban
+
+    &7The shared lives pool is empty!
+    &7Duration: &e{duration}
+
+    &7Return: &a{return_time}
 
 errors:
   no-permission: "&cYou don't have permission to do that."

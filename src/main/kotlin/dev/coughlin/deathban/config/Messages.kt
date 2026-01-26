@@ -98,4 +98,46 @@ class Messages(private val file: File) {
 
     fun getInvalidUsage(usage: String): String =
         prefixed("errors.invalid-usage", "usage" to usage)
+
+    // Shared Lives messages
+    fun getPoolStatus(pool: String, lives: Int, max: Int): String =
+        prefixed("shared-lives.pool-status",
+            "pool" to pool,
+            "lives" to lives,
+            "max" to max
+        )
+
+    fun getLifeAdded(lives: Int, max: Int): String =
+        prefixed("shared-lives.life-added", "lives" to lives, "max" to max)
+
+    fun getLifeConsumed(lives: Int, max: Int): String =
+        prefixed("shared-lives.life-consumed", "lives" to lives, "max" to max)
+
+    fun getPoolEmpty(): String = prefixed("shared-lives.pool-empty")
+
+    fun getPoolFull(max: Int): String =
+        prefixed("shared-lives.pool-full", "max" to max)
+
+    fun getNoPool(): String = prefixed("shared-lives.no-pool")
+
+    fun getTeamCreated(team: String): String =
+        prefixed("shared-lives.team-created", "team" to team)
+
+    fun getTeamJoined(team: String): String =
+        prefixed("shared-lives.team-joined", "team" to team)
+
+    fun getTeamLeft(): String = prefixed("shared-lives.team-left")
+
+    fun getTeamExists(): String = prefixed("shared-lives.team-exists")
+
+    fun getTeamNotFound(team: String): String =
+        prefixed("shared-lives.team-not-found", "team" to team)
+
+    fun getTeamsDisabled(): String = prefixed("shared-lives.teams-disabled")
+
+    fun getSharedLivesKickMessage(duration: Duration, returnTime: String): String =
+        get("shared-lives.kick-message",
+            "duration" to TimeUtil.formatDuration(duration),
+            "return_time" to returnTime
+        )
 }

@@ -1,5 +1,6 @@
 package dev.coughlin.deathban.listener
 
+import dev.coughlin.deathban.config.BanMode
 import dev.coughlin.deathban.config.Messages
 import dev.coughlin.deathban.config.Settings
 import dev.coughlin.deathban.data.DeathRecord
@@ -7,6 +8,7 @@ import dev.coughlin.deathban.data.LocationData
 import dev.coughlin.deathban.data.PlayerDataManager
 import dev.coughlin.deathban.manager.BanManager
 import dev.coughlin.deathban.manager.OffenseManager
+import dev.coughlin.deathban.manager.SharedLivesManager
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -23,7 +25,8 @@ class DeathListener(
     private val messages: Messages,
     private val dataManager: PlayerDataManager,
     private val offenseManager: OffenseManager,
-    private val banManager: BanManager
+    private val banManager: BanManager,
+    private val sharedLivesManager: SharedLivesManager?
 ) : Listener {
 
     private val processingDeaths = ConcurrentHashMap.newKeySet<UUID>()
@@ -61,6 +64,15 @@ class DeathListener(
     }
 
     private fun processDeath(player: Player, event: PlayerDeathEvent) {
+        val deathCause = event.entity.lastDamageCause?.cause?.name ?: "UNKNOWN"
+
+        when (settings.mode) {
+            BanMode.INDIVIDUAL -> processIndividualDeath(player, event, deathCause)
+            BanMode.SHARED -> processSharedDeath(player, deathCause)
+        }
+    }
+
+    private fun processIndividualDeath(player: Player, event: PlayerDeathEvent, deathCause: String) {
         dataManager.addPendingBan(player.uniqueId)
 
         val data = dataManager.getOrCreate(player.uniqueId)
@@ -73,7 +85,6 @@ class DeathListener(
         // Prune old deaths outside rolling window
         offenseManager.pruneOldDeaths(data)
 
-        val deathCause = event.entity.lastDamageCause?.cause?.name ?: "UNKNOWN"
         val killer = event.entity.killer?.uniqueId
 
         // Record death
@@ -105,6 +116,30 @@ class DeathListener(
             } else if (remaining <= 2) {
                 player.sendMessage(messages.getWarningNearLimit(remaining))
             }
+        }
+    }
+
+    private fun processSharedDeath(player: Player, deathCause: String) {
+        val manager = sharedLivesManager ?: return
+
+        // Try to consume a life from the pool
+        if (manager.consumeLife(player.uniqueId)) {
+            val pool = manager.getPoolForPlayer(player.uniqueId) ?: manager.getGlobalPool()
+            player.sendMessage(messages.getLifeConsumed(pool.lives, pool.maxLives))
+
+            // Warn if pool is getting low
+            if (pool.lives == 1) {
+                player.sendMessage(messages.getWarningFinalLife())
+            } else if (pool.lives <= 3) {
+                player.sendMessage(messages.getWarningNearLimit(pool.lives))
+            }
+
+            debug("Shared life consumed for ${player.name}. Pool: ${pool.lives}/${pool.maxLives}")
+        } else {
+            // Pool is empty - apply ban
+            player.sendMessage(messages.getPoolEmpty())
+            banManager.applySharedBan(player, deathCause)
+            debug("Shared pool empty - banning ${player.name}")
         }
     }
 

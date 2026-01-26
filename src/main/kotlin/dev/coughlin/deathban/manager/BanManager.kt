@@ -54,6 +54,42 @@ class BanManager(
         plugin.logger.info("Banned ${player.name} for ${TimeUtil.formatDuration(duration)} (offense level ${data.offenseLevel})")
     }
 
+    fun applySharedBan(player: Player, deathCause: String) {
+        val duration = settings.sharedLivesEmptyPoolBan
+        val now = Instant.now()
+
+        val ban = BanRecord(
+            startTime = now,
+            endTime = now.plus(duration),
+            offenseLevel = 0, // Not used in shared mode
+            deathCause = deathCause
+        )
+
+        val data = dataManager.getOrCreate(player.uniqueId)
+        data.currentBan = ban
+        dataManager.save(data)
+        totalBansIssued.incrementAndGet()
+
+        // Show title
+        player.sendTitle(
+            messages.getBanTitle(),
+            messages.getBanSubtitle(duration),
+            10, 70, 20
+        )
+
+        // Schedule kick after respawn sequence completes
+        Bukkit.getScheduler().runTaskLater(plugin, Runnable {
+            if (player.isOnline) {
+                player.kickPlayer(messages.getSharedLivesKickMessage(
+                    duration,
+                    TimeUtil.formatInstant(ban.endTime)
+                ))
+            }
+        }, 60L)
+
+        plugin.logger.info("Banned ${player.name} for ${TimeUtil.formatDuration(duration)} (shared pool empty)")
+    }
+
     fun pardon(uuid: UUID): Boolean {
         val data = dataManager.get(uuid) ?: return false
         if (!data.isBanned()) return false

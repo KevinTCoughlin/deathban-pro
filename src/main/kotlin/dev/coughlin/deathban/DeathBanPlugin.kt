@@ -2,6 +2,7 @@ package dev.coughlin.deathban
 
 import dev.coughlin.deathban.command.DeathBanCommand
 import dev.coughlin.deathban.command.DeathBanTabCompleter
+import dev.coughlin.deathban.config.BanMode
 import dev.coughlin.deathban.config.Messages
 import dev.coughlin.deathban.config.Settings
 import dev.coughlin.deathban.data.PlayerDataManager
@@ -9,6 +10,7 @@ import dev.coughlin.deathban.listener.DeathListener
 import dev.coughlin.deathban.listener.JoinListener
 import dev.coughlin.deathban.manager.BanManager
 import dev.coughlin.deathban.manager.OffenseManager
+import dev.coughlin.deathban.manager.SharedLivesManager
 import dev.coughlin.deathban.util.ColorUtil
 import dev.coughlin.deathban.util.UpdateChecker
 import org.bstats.bukkit.Metrics
@@ -34,6 +36,9 @@ class DeathBanPlugin : JavaPlugin() {
     lateinit var banManager: BanManager
         private set
 
+    var sharedLivesManager: SharedLivesManager? = null
+        private set
+
     private lateinit var joinListener: JoinListener
     private var updateNotification: String? = null
 
@@ -52,6 +57,15 @@ class DeathBanPlugin : JavaPlugin() {
         // Initialize managers
         offenseManager = OffenseManager(settings)
         banManager = BanManager(this, settings, messages, dataManager)
+
+        // Initialize shared lives manager if in shared mode
+        if (settings.mode == BanMode.SHARED) {
+            sharedLivesManager = SharedLivesManager(
+                dataFolder, logger,
+                settings.sharedLivesDefault,
+                settings.sharedLivesMax
+            )
+        }
 
         // Register listeners
         registerListeners()
@@ -73,8 +87,13 @@ class DeathBanPlugin : JavaPlugin() {
         processPendingBans()
 
         logger.info("DeathBan Pro v${description.version} enabled!")
-        logger.info("Rolling window: ${if (settings.rollingWindowEnabled) "enabled" else "disabled"}")
-        logger.info("Max deaths before ban: ${settings.maxDeathsInWindow}")
+        logger.info("Mode: ${settings.mode.name.lowercase()}")
+        if (settings.mode == BanMode.INDIVIDUAL) {
+            logger.info("Rolling window: ${if (settings.rollingWindowEnabled) "enabled" else "disabled"}")
+            logger.info("Max deaths before ban: ${settings.maxDeathsInWindow}")
+        } else {
+            logger.info("Shared lives: ${settings.sharedLivesDefault}/${settings.sharedLivesMax}")
+        }
     }
 
     override fun onDisable() {
@@ -91,7 +110,7 @@ class DeathBanPlugin : JavaPlugin() {
 
     private fun registerListeners() {
         val deathListener = DeathListener(
-            this, settings, messages, dataManager, offenseManager, banManager
+            this, settings, messages, dataManager, offenseManager, banManager, sharedLivesManager
         )
         joinListener = JoinListener(this, messages, dataManager)
 
@@ -110,6 +129,10 @@ class DeathBanPlugin : JavaPlugin() {
 
     private fun initializeMetrics() {
         val metrics = Metrics(this, BSTATS_PLUGIN_ID)
+
+        metrics.addCustomChart(SimplePie("ban_mode") {
+            settings.mode.name.lowercase()
+        })
 
         metrics.addCustomChart(SimplePie("rolling_window") {
             if (settings.rollingWindowEnabled) "enabled" else "disabled"
