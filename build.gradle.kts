@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "dev.coughlin"
-version = "1.0.0-SNAPSHOT"
+version = "1.0.0-beta.1"
 
 repositories {
     mavenCentral()

@@ -83,8 +83,9 @@ class DeathBanCommand(
         }
 
         val targetName = args[1]
+        @Suppress("DEPRECATION")
         val target = Bukkit.getOfflinePlayer(targetName)
-        
+
         if (!target.hasPlayedBefore() && !target.isOnline) {
             sender.sendMessage(messages.getPlayerNotFound(targetName))
             return true
@@ -123,6 +124,7 @@ class DeathBanCommand(
         }
 
         val targetName = args[1]
+        @Suppress("DEPRECATION")
         val target = Bukkit.getOfflinePlayer(targetName)
 
         if (!target.hasPlayedBefore() && !target.isOnline) {
@@ -148,6 +150,7 @@ class DeathBanCommand(
         }
 
         val targetName = args[1]
+        @Suppress("DEPRECATION")
         val target = Bukkit.getOfflinePlayer(targetName)
 
         if (!target.hasPlayedBefore() && !target.isOnline) {

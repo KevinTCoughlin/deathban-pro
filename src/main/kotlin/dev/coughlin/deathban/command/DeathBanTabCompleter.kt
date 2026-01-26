@@ -73,6 +73,7 @@ class DeathBanTabCompleter(
         }
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun getThirdArg(sender: CommandSender, subcommand: String, secondArg: String): List<String> {
         return when (subcommand.lowercase()) {
             "theme" -> when (secondArg.lowercase()) {

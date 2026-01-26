@@ -1,5 +1,10 @@
 # DeathBan Pro
 
+[![CI](https://github.com/KevinTCoughlin/deathban-pro/actions/workflows/ci.yml/badge.svg)](https://github.com/KevinTCoughlin/deathban-pro/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.21%2B-brightgreen)](https://www.minecraft.net/)
+[![Java](https://img.shields.io/badge/Java-21%2B-orange)](https://adoptium.net/)
+
 Hardcore-style death penalties for Minecraft servers. When players die, they receive temporary bans that escalate with repeated deaths.
 
 ## Features
@@ -85,6 +90,27 @@ offense-reset:
   clean-period: 168h  # 7 days
 ```
 
+## Themes
+
+DeathBan Pro includes a theme system for customizing the visual and audio experience:
+
+| Theme | Description |
+|-------|-------------|
+| `default` | Standard red/gray color scheme |
+| `halloween` | Spooky theme with skulls, soul particles, and wither sounds |
+
+### Theme Commands
+
+| Command | Description |
+|---------|-------------|
+| `/deathban theme list` | List available themes |
+| `/deathban theme set <id>` | Change the active theme (admin) |
+| `/deathban theme preview <id>` | Preview a theme |
+
+### Custom Themes
+
+Create custom themes by implementing the `Theme` interface and packaging as a JAR. Place theme JARs in `plugins/DeathBanPro/themes/`.
+
 ## Building
 
 ```bash
@@ -92,6 +118,14 @@ offense-reset:
 ```
 
 The built JAR will be in `build/libs/`.
+
+## Development
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for version history.
 
 ## License
 

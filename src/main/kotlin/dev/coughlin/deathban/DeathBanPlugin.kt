@@ -142,6 +142,11 @@ class DeathBanPlugin : JavaPlugin() {
     }
 
     private fun initializeMetrics() {
+        if (BSTATS_PLUGIN_ID == 0) {
+            logger.info("bStats metrics disabled (plugin ID not configured)")
+            return
+        }
+
         val metrics = Metrics(this, BSTATS_PLUGIN_ID)
 
         metrics.addCustomChart(SimplePie("ban_mode") {
@@ -168,9 +173,14 @@ class DeathBanPlugin : JavaPlugin() {
     }
 
     private fun checkForUpdates() {
-        // Skip update check for SNAPSHOT versions during development
-        if (description.version.contains("SNAPSHOT")) {
-            logger.info("Skipping update check for SNAPSHOT version")
+        if (SPIGOT_RESOURCE_ID == 0) {
+            logger.info("Update check disabled (SpigotMC resource ID not configured)")
+            return
+        }
+
+        // Skip update check for SNAPSHOT/beta versions during development
+        if (description.version.contains("SNAPSHOT") || description.version.contains("beta")) {
+            logger.info("Skipping update check for development version")
             return
         }
 
@@ -207,8 +217,16 @@ class DeathBanPlugin : JavaPlugin() {
     }
 
     companion object {
-        // Replace with actual IDs after SpigotMC submission
+        /**
+         * bStats plugin ID. Register at https://bstats.org/getting-started
+         * Set to 0 to disable metrics reporting.
+         */
         const val BSTATS_PLUGIN_ID = 0
+
+        /**
+         * SpigotMC resource ID for update checking.
+         * Set after publishing to SpigotMC. Set to 0 to disable update checks.
+         */
         const val SPIGOT_RESOURCE_ID = 0
     }
 }
