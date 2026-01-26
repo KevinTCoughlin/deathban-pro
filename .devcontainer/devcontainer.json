@@ -1,0 +1,35 @@
+{
+  "name": "DeathBan Pro",
+  "image": "mcr.microsoft.com/devcontainers/java:21",
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "21",
+      "installGradle": "true",
+      "gradleVersion": "8.5"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "fwcd.kotlin",
+        "vscjava.vscode-gradle",
+        "editorconfig.editorconfig"
+      ],
+      "settings": {
+        "java.configuration.updateBuildConfiguration": "automatic",
+        "kotlin.languageServer.enabled": true,
+        "editor.formatOnSave": true
+      }
+    }
+  },
+  "postCreateCommand": "./gradlew build --no-daemon",
+  "remoteUser": "vscode",
+  "forwardPorts": [25565],
+  "portsAttributes": {
+    "25565": {
+      "label": "Minecraft Server",
+      "onAutoForward": "notify"
+    }
+  }
+}
