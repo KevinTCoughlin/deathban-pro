@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="DeathBan Pro - Hardcore-style death penalties for Minecraft servers with escalating bans, rolling windows, and team-based life pools.">
+    <meta name="keywords" content="minecraft, plugin, deathban, hardcore, smp, server, spigot, paper">
+    <title>DeathBan Pro - Hardcore Death Penalties for Minecraft</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            transition: opacity 0.3s;
+        }
+
+        .nav-links a:hover {
+            opacity: 0.7;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 100px 0;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 56px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero p {
+            font-size: 24px;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .badges img {
+            height: 20px;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary {
+            background: #c0392b;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #333;
+        }
+
+        section {
+            background: white;
+            padding: 80px 0;
+        }
+
+        section:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        h2 {
+            font-size: 42px;
+            text-align: center;
+            margin-bottom: 50px;
+            color: #2c3e50;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .feature-card p {
+            color: #666;
+        }
+
+        .installation {
+            background: #2c3e50;
+            color: white;
+        }
+
+        .installation h2 {
+            color: white;
+        }
+
+        .install-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .install-step {
+            text-align: center;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            background: #c0392b;
+            border-radius: 50%;
+            line-height: 50px;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .commands-table {
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 40px;
+        }
+
+        .commands-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .commands-table th {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+
+        .commands-table td {
+            padding: 15px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .commands-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .commands-table code {
+            background: #ecf0f1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .config-example {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 30px;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin-top: 40px;
+        }
+
+        .config-example pre {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        footer a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .hero p {
+                font-size: 18px;
+            }
+
+            h2 {
+                font-size: 32px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <a href="#" class="logo">DeathBan Pro</a>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#installation">Installation</a></li>
+                <li><a href="#commands">Commands</a></li>
+                <li><a href="https://github.com/KevinTCoughlin/deathban-pro">GitHub</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>DeathBan Pro</h1>
+            <p>Hardcore Death Penalties Done Right</p>
+            <div class="badges">
+                <img src="https://github.com/KevinTCoughlin/deathban-pro/actions/workflows/ci.yml/badge.svg" alt="CI Status">
+                <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
+                <img src="https://img.shields.io/badge/Minecraft-1.21%2B-brightgreen" alt="Minecraft Version">
+                <img src="https://img.shields.io/badge/Java-25%2B-orange" alt="Java Version">
+            </div>
+            <p>Bring hardcore-style consequences to your Minecraft server without the permadeath.<br>
+            Temporary bans that escalate with repeated deaths — teaching players to play carefully.</p>
+            <div class="cta-buttons">
+                <a href="https://github.com/KevinTCoughlin/deathban-pro/releases" class="btn btn-primary">Download Latest</a>
+                <a href="https://github.com/KevinTCoughlin/deathban-pro" class="btn btn-secondary">View on GitHub</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="features">
+        <div class="container">
+            <h2>Key Features</h2>
+            <div class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">⏱️</div>
+                    <h3>Rolling Death Window</h3>
+                    <p>Deaths only count within a configurable time window (default: 24 hours). Die 3 times in 24 hours? You're banned. Survive 24 hours? Your counter resets.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📈</div>
+                    <h3>Escalating Bans</h3>
+                    <p>First offense: 1 hour. Second: 6 hours. Third: 24 hours. Fourth: 72 hours. Players learn quickly that carelessness has consequences.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3>Offense Reset System</h3>
+                    <p>Play safely for 7 days (configurable) and your offense level resets. Rewards careful gameplay!</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">👥</div>
+                    <h3>Shared Lives Mode</h3>
+                    <p>Create server-wide or team-based life pools. When the pool is empty, deaths trigger bans. Perfect for team challenges!</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3>Seasonal Themes</h3>
+                    <p>Halloween theme with spooky particles and sounds. Default theme with classic red/gray colors. More themes coming soon!</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚙️</div>
+                    <h3>Full Customization</h3>
+                    <p>Every message, duration, and threshold is configurable. Supports MiniMessage (Paper) and legacy color codes (Spigot).</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="installation" class="installation">
+        <div class="container">
+            <h2>Installation</h2>
+            <div class="install-steps">
+                <div class="install-step">
+                    <div class="step-number">1</div>
+                    <h3>Download</h3>
+                    <p>Get the latest release from GitHub</p>
+                </div>
+                <div class="install-step">
+                    <div class="step-number">2</div>
+                    <h3>Install</h3>
+                    <p>Place JAR in your plugins folder</p>
+                </div>
+                <div class="install-step">
+                    <div class="step-number">3</div>
+                    <h3>Restart</h3>
+                    <p>Restart your Minecraft server</p>
+                </div>
+                <div class="install-step">
+                    <div class="step-number">4</div>
+                    <h3>Configure</h3>
+                    <p>Edit config.yml to customize</p>
+                </div>
+            </div>
+            <p style="text-align: center; margin-top: 40px; font-size: 18px;">
+                <strong>Requirements:</strong> Spigot or Paper 1.21+ • Java 25+
+            </p>
+        </div>
+    </section>
+
+    <section id="commands">
+        <div class="container">
+            <h2>Commands & Permissions</h2>
+            <div class="commands-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Description</th>
+                            <th>Permission</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>/deathban</code></td>
+                            <td>Show help menu</td>
+                            <td><code>deathban.use</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>/deathban check [player]</code></td>
+                            <td>Check ban status</td>
+                            <td><code>deathban.check</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>/deathban lives</code></td>
+                            <td>Check shared lives pool</td>
+                            <td><code>deathban.use</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>/deathban team create &lt;name&gt;</code></td>
+                            <td>Create a team pool</td>
+                            <td><code>deathban.use</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>/deathban team join &lt;name&gt;</code></td>
+                            <td>Join a team pool</td>
+                            <td><code>deathban.use</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>/deathban reset &lt;player&gt;</code></td>
+                            <td>Reset offense data</td>
+                            <td><code>deathban.admin</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>/deathban pardon &lt;player&gt;</code></td>
+                            <td>Remove active ban</td>
+                            <td><code>deathban.admin</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>/deathban reload</code></td>
+                            <td>Reload configuration</td>
+                            <td><code>deathban.admin</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 style="margin-top: 80px;">Configuration Example</h2>
+            <div class="config-example">
+                <pre># DeathBan Pro Configuration
+
+mode: individual  # "individual" or "shared"
+
+# Shared Lives (when mode: shared)
+shared-lives:
+  default-lives: 10
+  max-lives: 20
+  allow-teams: true
+  empty-pool-ban: 1h
+
+# Rolling window - deaths within this period count toward ban
+rolling-window:
+  enabled: true
+  duration: 24h
+  max-deaths: 3
+
+# Ban durations by offense level
+ban-durations:
+  1: 1h      # First offense
+  2: 6h      # Second offense
+  3: 24h     # Third offense
+  4: 72h     # Fourth offense
+  5: 168h    # Fifth+ offense
+
+# Offense resets after playing safely for this period
+offense-reset:
+  enabled: true
+  clean-period: 168h  # 7 days
+
+# Theme system
+theme: default  # "default" or "halloween"</pre>
+            </div>
+        </div>
+    </section>
+
+    <section style="background: #ecf0f1;">
+        <div class="container" style="text-align: center;">
+            <h2>Perfect For</h2>
+            <div class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">⚔️</div>
+                    <h3>Hardcore SMP Servers</h3>
+                    <p>Add meaningful consequences to death without permanent bans</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎥</div>
+                    <h3>Content Creator Challenges</h3>
+                    <p>Create engaging content with high-stakes gameplay</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎃</div>
+                    <h3>Seasonal Events</h3>
+                    <p>Use themed modes for Halloween, holidays, and special events</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p style="font-size: 18px; margin-bottom: 20px;">
+                <strong>DeathBan Pro</strong> — Hardcore death penalties for Minecraft servers
+            </p>
+            <p>
+                <a href="https://github.com/KevinTCoughlin/deathban-pro">GitHub</a> •
+                <a href="https://github.com/KevinTCoughlin/deathban-pro/issues">Issues</a> •
+                <a href="https://github.com/KevinTCoughlin/deathban-pro/blob/main/LICENSE">License (MIT)</a>
+            </p>
+            <p style="margin-top: 20px; opacity: 0.7;">
+                Made with care for the Minecraft community
+            </p>
+        </div>
+    </footer>
+</body>
+</html>
