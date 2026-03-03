@@ -1,6 +1,7 @@
 package dev.coughlin.deathban.data
 
 import org.bukkit.configuration.file.YamlConfiguration
+import org.bukkit.plugin.Plugin
 import java.io.File
 import java.time.Instant
 import java.util.UUID
@@ -9,10 +10,12 @@ import java.util.logging.Logger
 
 class PlayerDataManager(
     private val dataFolder: File,
-    private val logger: Logger
+    private val logger: Logger,
+    private val plugin: Plugin? = null
 ) {
     private val playersFolder = File(dataFolder, "players")
     private val cache = ConcurrentHashMap<UUID, PlayerData>()
+    private val dirty = ConcurrentHashMap.newKeySet<UUID>()
     private val pendingBans = ConcurrentHashMap.newKeySet<UUID>()
     private val pendingBansFile = File(dataFolder, "pending-bans.yml")
 
@@ -27,8 +30,65 @@ class PlayerDataManager(
     fun get(uuid: UUID): PlayerData? =
         cache[uuid] ?: load(uuid)?.also { cache[uuid] = it }
 
+    /**
+     * Pre-load a player's data into the cache.
+     * Safe to call from any thread (e.g. AsyncPlayerPreLoginEvent).
+     */
+    fun preload(uuid: UUID) {
+        if (cache.containsKey(uuid)) return
+        load(uuid)?.let { cache[uuid] = it }
+    }
+
+    /**
+     * Synchronous save — writes player data to disk immediately.
+     * Use [saveAsync] instead when calling from the main thread.
+     */
     fun save(data: PlayerData) {
         cache[data.uuid] = data
+        writeToDisk(data)
+    }
+
+    /**
+     * Marks the player data as dirty and schedules an async write.
+     * The in-memory cache is updated immediately so subsequent reads
+     * on the main thread see the latest state.
+     */
+    fun saveAsync(data: PlayerData) {
+        cache[data.uuid] = data
+        dirty.add(data.uuid)
+
+        plugin?.let { p ->
+            p.server.scheduler.runTaskAsynchronously(p, Runnable {
+                try {
+                    writeToDisk(data)
+                    dirty.remove(data.uuid)
+                } catch (e: Exception) {
+                    logger.severe("Failed to async-save data for ${data.uuid}: ${e.message}")
+                }
+            })
+        } ?: run {
+            // Fallback: no plugin reference (e.g. tests) — save synchronously
+            writeToDisk(data)
+            dirty.remove(data.uuid)
+        }
+    }
+
+    /**
+     * Flush all dirty entries to disk synchronously.
+     * Call this from onDisable() to guarantee nothing is lost.
+     */
+    fun saveAll() {
+        val dirtyUuids = dirty.toSet()
+        for (uuid in dirtyUuids) {
+            cache[uuid]?.let { writeToDisk(it) }
+            dirty.remove(uuid)
+        }
+        if (dirtyUuids.isNotEmpty()) {
+            logger.info("Flushed ${dirtyUuids.size} dirty player record(s) to disk")
+        }
+    }
+
+    private fun writeToDisk(data: PlayerData) {
         val file = getPlayerFile(data.uuid)
         val config = YamlConfiguration()
 
@@ -119,19 +179,32 @@ class PlayerDataManager(
     // Pending bans (crash recovery)
     fun addPendingBan(uuid: UUID) {
         pendingBans.add(uuid)
-        savePendingBans()
+        savePendingBansAsync()
     }
 
     fun removePendingBan(uuid: UUID) {
         pendingBans.remove(uuid)
-        savePendingBans()
+        savePendingBansAsync()
     }
 
     fun getPendingBans(): Set<UUID> = pendingBans.toSet()
 
-    private fun savePendingBans() {
+    private fun savePendingBansAsync() {
+        val snapshot = pendingBans.toList()
+        plugin?.let { p ->
+            p.server.scheduler.runTaskAsynchronously(p, Runnable {
+                try {
+                    writePendingBans(snapshot)
+                } catch (e: Exception) {
+                    logger.severe("Failed to async-save pending bans: ${e.message}")
+                }
+            })
+        } ?: writePendingBans(snapshot)
+    }
+
+    private fun writePendingBans(uuids: List<UUID>) {
         val config = YamlConfiguration()
-        config.set("pending", pendingBans.map { it.toString() })
+        config.set("pending", uuids.map { it.toString() })
         config.save(pendingBansFile)
     }
 

@@ -62,7 +62,7 @@ class DeathBanPlugin : JavaPlugin() {
         }
 
         // Initialize data manager
-        dataManager = PlayerDataManager(dataFolder, logger)
+        dataManager = PlayerDataManager(dataFolder, logger, this)
 
         // Initialize managers
         offenseManager = OffenseManager(settings)
@@ -73,7 +73,8 @@ class DeathBanPlugin : JavaPlugin() {
             sharedLivesManager = SharedLivesManager(
                 dataFolder, logger,
                 settings.sharedLivesDefault,
-                settings.sharedLivesMax
+                settings.sharedLivesMax,
+                this
             )
         }
 
@@ -108,6 +109,9 @@ class DeathBanPlugin : JavaPlugin() {
     }
 
     override fun onDisable() {
+        // Flush any dirty data still in memory to disk before shutdown
+        dataManager.saveAll()
+        sharedLivesManager?.saveAll()
         dataManager.clearCache()
         logger.info("DeathBan Pro disabled")
     }

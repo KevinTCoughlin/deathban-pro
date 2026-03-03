@@ -5,6 +5,7 @@ import dev.coughlin.deathban.data.PlayerDataManager
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerLoginEvent
 import org.bukkit.plugin.Plugin
@@ -15,6 +16,16 @@ class JoinListener(
     private val dataManager: PlayerDataManager,
     var updateNotification: String? = null
 ) : Listener {
+
+    /**
+     * Pre-load player data from disk on the async login thread so that
+     * the subsequent [onPlayerLogin] (main thread) never touches the filesystem.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    fun onAsyncPreLogin(event: AsyncPlayerPreLoginEvent) {
+        if (event.loginResult != AsyncPlayerPreLoginEvent.Result.ALLOWED) return
+        dataManager.preload(event.uniqueId)
+    }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     fun onPlayerLogin(event: PlayerLoginEvent) {
@@ -33,9 +44,9 @@ class JoinListener(
             return
         }
 
-        // If ban expired, save the cleared state
+        // If ban expired, save the cleared state (async — not critical path)
         if (ban != null && !data.isBanned()) {
-            dataManager.save(data)
+            dataManager.saveAsync(data)
         }
     }
 
@@ -62,7 +73,7 @@ class JoinListener(
         // Notify of pardon (set by admin while offline)
         if (data.pendingPardon) {
             data.pendingPardon = false
-            dataManager.save(data)
+            dataManager.saveAsync(data)
 
             plugin.server.scheduler.runTaskLater(plugin, Runnable {
                 if (player.isOnline) {

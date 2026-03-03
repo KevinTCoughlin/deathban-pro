@@ -106,7 +106,7 @@ class DeathListener(
             banManager.applyBan(player, data, deathCause)
         } else {
             // Save data and clear pending
-            dataManager.save(data)
+            dataManager.saveAsync(data)
             dataManager.removePendingBan(player.uniqueId)
 
             // Warn player about remaining lives

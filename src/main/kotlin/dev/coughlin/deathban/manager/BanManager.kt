@@ -34,7 +34,7 @@ class BanManager(
         )
 
         data.currentBan = ban
-        dataManager.save(data)
+        dataManager.saveAsync(data)
         dataManager.removePendingBan(player.uniqueId)
         totalBansIssued.incrementAndGet()
 
@@ -92,7 +92,7 @@ class BanManager(
 
         val data = dataManager.getOrCreate(player.uniqueId)
         data.currentBan = ban
-        dataManager.save(data)
+        dataManager.saveAsync(data)
         totalBansIssued.incrementAndGet()
 
         val theme = plugin.themeManager.getActiveTheme()
@@ -153,7 +153,7 @@ class BanManager(
             data.pendingPardon = true
         }
 
-        dataManager.save(data)
+        dataManager.saveAsync(data)
         return true
     }
 
@@ -166,7 +166,7 @@ class BanManager(
         data.lastDeathTime = null
         data.pendingPardon = false
 
-        dataManager.save(data)
+        dataManager.saveAsync(data)
         return true
     }
 

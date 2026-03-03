@@ -2,6 +2,7 @@ package dev.coughlin.deathban.manager
 
 import dev.coughlin.deathban.data.SharedLivesPool
 import org.bukkit.configuration.file.YamlConfiguration
+import org.bukkit.plugin.Plugin
 import java.io.File
 import java.time.Instant
 import java.util.UUID
@@ -11,10 +12,12 @@ class SharedLivesManager(
     private val dataFolder: File,
     private val logger: Logger,
     private val defaultLives: Int,
-    private val maxLives: Int
+    private val maxLives: Int,
+    private val plugin: Plugin? = null
 ) {
     private val poolsFile = File(dataFolder, "shared-lives.yml")
     private val pools = mutableMapOf<String, SharedLivesPool>()
+    @Volatile private var dirty = false
 
     init {
         load()
@@ -28,7 +31,7 @@ class SharedLivesManager(
                 id = id,
                 lives = defaultLives,
                 maxLives = maxLives
-            ).also { save() }
+            ).also { saveAsync() }
         }
     }
 
@@ -48,7 +51,7 @@ class SharedLivesManager(
     fun consumeLife(uuid: UUID): Boolean {
         val pool = getPoolForPlayer(uuid) ?: getGlobalPool()
         if (pool.removeLife()) {
-            save()
+            saveAsync()
             logger.info("Life consumed from pool '${pool.id}'. Remaining: ${pool.lives}/${pool.maxLives}")
             return true
         }
@@ -58,7 +61,7 @@ class SharedLivesManager(
     fun addLife(uuid: UUID, poolId: String? = null): Boolean {
         val pool = poolId?.let { getOrCreatePool(it) } ?: getPoolForPlayer(uuid) ?: getGlobalPool()
         if (pool.addLife(uuid)) {
-            save()
+            saveAsync()
             logger.info("Life added to pool '${pool.id}' by $uuid. Total: ${pool.lives}/${pool.maxLives}")
             return true
         }
@@ -71,7 +74,7 @@ class SharedLivesManager(
 
         val pool = getOrCreatePool(poolId)
         if (pool.addMember(uuid)) {
-            save()
+            saveAsync()
             return true
         }
         return false
@@ -84,7 +87,7 @@ class SharedLivesManager(
                 left = true
             }
         }
-        if (left) save()
+        if (left) saveAsync()
         return left
     }
 
@@ -99,20 +102,56 @@ class SharedLivesManager(
         )
         pool.addMember(creator)
         pools[id] = pool
-        save()
+        saveAsync()
         return pool
     }
 
     fun deletePool(id: String): Boolean {
         if (id == SharedLivesPool.GLOBAL_POOL_ID) return false
         val removed = pools.remove(id) != null
-        if (removed) save()
+        if (removed) saveAsync()
         return removed
     }
 
     fun getAllPools(): List<SharedLivesPool> = pools.values.toList()
 
+    /**
+     * Schedule an async write. The in-memory state is always authoritative;
+     * this just persists the snapshot to disk off the main thread.
+     */
+    fun saveAsync() {
+        dirty = true
+        plugin?.let { p ->
+            p.server.scheduler.runTaskAsynchronously(p, Runnable {
+                try {
+                    writeToDisk()
+                    dirty = false
+                } catch (e: Exception) {
+                    logger.severe("Failed to async-save shared lives: ${e.message}")
+                }
+            })
+        } ?: run {
+            writeToDisk()
+            dirty = false
+        }
+    }
+
+    /**
+     * Synchronous flush — call from onDisable() to guarantee persistence.
+     */
+    fun saveAll() {
+        if (dirty) {
+            writeToDisk()
+            dirty = false
+            logger.info("Flushed shared lives pools to disk")
+        }
+    }
+
     fun save() {
+        writeToDisk()
+    }
+
+    private fun writeToDisk() {
         val config = YamlConfiguration()
 
         pools.forEach { (id, pool) ->
