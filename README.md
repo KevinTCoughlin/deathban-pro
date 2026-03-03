@@ -7,6 +7,8 @@
 
 Hardcore-style death penalties for Minecraft servers. When players die, they receive temporary bans that escalate with repeated deaths.
 
+🌐 **[View Landing Page](https://kevintcoughlin.github.io/deathban-pro/)** (coming soon after setup)
+
 ## Features
 
 - **Two Modes**: Individual (per-player tracking) or Shared (pooled server/team lives)
