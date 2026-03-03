@@ -6,7 +6,7 @@ Thank you for your interest in contributing to DeathBan Pro! This document provi
 
 ### Prerequisites
 
-- Java 21 or higher
+- Java 25 or higher
 - Gradle (wrapper included)
 - A Minecraft server (Spigot or Paper 1.21+) for testing
 

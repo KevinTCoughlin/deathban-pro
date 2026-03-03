@@ -1,6 +1,6 @@
 plugins {
     kotlin("jvm") version "2.3.10"
-    id("io.github.goooler.shadow") version "8.1.8"
+    id("com.gradleup.shadow") version "9.3.2"
 }
 
 group = "dev.coughlin"
@@ -14,12 +14,11 @@ repositories {
 
 dependencies {
     compileOnly("org.spigotmc:spigot-api:1.21.11-R0.2-SNAPSHOT")
-    implementation("org.bstats:bstats-bukkit:3.0.2")
+    implementation("org.bstats:bstats-bukkit:3.2.1")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:6.0.2")
+    testImplementation("org.junit.jupiter:junit-jupiter:6.0.3")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testImplementation("io.mockk:mockk:1.14.7")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("io.mockk:mockk:1.14.9")
 }
 
 tasks {
@@ -71,5 +70,5 @@ tasks {
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(25)
 }
