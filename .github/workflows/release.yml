@@ -16,10 +16,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK 21
+      - name: Set up JDK 25
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: '25'
           distribution: 'temurin'
           cache: 'gradle'
 
@@ -41,7 +41,7 @@ jobs:
           mv build/libs/*.jar build/libs/DeathBanPro-${{ steps.get_version.outputs.VERSION }}.jar
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: build/libs/DeathBanPro-*.jar
           generate_release_notes: true

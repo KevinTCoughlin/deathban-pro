@@ -3,7 +3,7 @@
 [![CI](https://github.com/KevinTCoughlin/deathban-pro/actions/workflows/ci.yml/badge.svg)](https://github.com/KevinTCoughlin/deathban-pro/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.21%2B-brightgreen)](https://www.minecraft.net/)
-[![Java](https://img.shields.io/badge/Java-21%2B-orange)](https://adoptium.net/)
+[![Java](https://img.shields.io/badge/Java-25%2B-orange)](https://adoptium.net/)
 
 Hardcore-style death penalties for Minecraft servers. When players die, they receive temporary bans that escalate with repeated deaths.
 
@@ -21,7 +21,7 @@ Hardcore-style death penalties for Minecraft servers. When players die, they rec
 ## Requirements
 
 - Spigot or Paper 1.21+
-- Java 21+
+- Java 25+
 
 ## Installation
 
