@@ -11,7 +11,7 @@ import java.util.logging.Logger
  */
 class ThemeManager(
     private val dataFolder: File,
-    private val logger: Logger
+    private val logger: Logger,
 ) {
     private val themesFolder = File(dataFolder, "themes")
     private val themes = mutableMapOf<String, Theme>()
@@ -49,13 +49,15 @@ class ThemeManager(
         val classLoader = URLClassLoader(arrayOf(jar.toURI().toURL()), javaClass.classLoader)
 
         // Read theme.yml from JAR
-        val themeYmlStream = classLoader.getResourceAsStream("theme.yml")
-            ?: throw IllegalStateException("theme.yml not found in ${jar.name}")
+        val themeYmlStream =
+            classLoader.getResourceAsStream("theme.yml")
+                ?: throw IllegalStateException("theme.yml not found in ${jar.name}")
 
         val config = YamlConfiguration.loadConfiguration(InputStreamReader(themeYmlStream))
 
-        val mainClass = config.getString("main")
-            ?: throw IllegalStateException("'main' not specified in theme.yml")
+        val mainClass =
+            config.getString("main")
+                ?: throw IllegalStateException("'main' not specified in theme.yml")
 
         val themeClass = classLoader.loadClass(mainClass)
         val theme = themeClass.getDeclaredConstructor().newInstance() as Theme

@@ -26,9 +26,8 @@ class DeathListener(
     private val dataManager: PlayerDataManager,
     private val offenseManager: OffenseManager,
     private val banManager: BanManager,
-    private val sharedLivesManager: SharedLivesManager?
+    private val sharedLivesManager: SharedLivesManager?,
 ) : Listener {
-
     private val processingDeaths = ConcurrentHashMap.newKeySet<UUID>()
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -57,14 +56,24 @@ class DeathListener(
             processDeath(player, event)
         } finally {
             // Clear processing flag after a delay to handle respawn
-            plugin.server.scheduler.runTaskLater(plugin, Runnable {
-                processingDeaths.remove(player.uniqueId)
-            }, 100L) // 5 seconds
+            plugin.server.scheduler.runTaskLater(
+                plugin,
+                Runnable {
+                    processingDeaths.remove(player.uniqueId)
+                },
+                100L,
+            ) // 5 seconds
         }
     }
 
-    private fun processDeath(player: Player, event: PlayerDeathEvent) {
-        val deathCause = event.entity.lastDamageCause?.cause?.name ?: "UNKNOWN"
+    private fun processDeath(
+        player: Player,
+        event: PlayerDeathEvent,
+    ) {
+        val deathCause =
+            event.entity.lastDamageCause
+                ?.cause
+                ?.name ?: "UNKNOWN"
 
         when (settings.mode) {
             BanMode.INDIVIDUAL -> processIndividualDeath(player, event, deathCause)
@@ -72,7 +81,11 @@ class DeathListener(
         }
     }
 
-    private fun processIndividualDeath(player: Player, event: PlayerDeathEvent, deathCause: String) {
+    private fun processIndividualDeath(
+        player: Player,
+        event: PlayerDeathEvent,
+        deathCause: String,
+    ) {
         dataManager.addPendingBan(player.uniqueId)
 
         val data = dataManager.getOrCreate(player.uniqueId)
@@ -88,13 +101,14 @@ class DeathListener(
         val killer = event.entity.killer?.uniqueId
 
         // Record death
-        val deathRecord = DeathRecord(
-            timestamp = Instant.now(),
-            world = player.world.name,
-            cause = deathCause,
-            killer = killer,
-            location = LocationData.from(player.location)
-        )
+        val deathRecord =
+            DeathRecord(
+                timestamp = Instant.now(),
+                world = player.world.name,
+                cause = deathCause,
+                killer = killer,
+                location = LocationData.from(player.location),
+            )
         data.deaths.add(deathRecord)
         data.lastDeathTime = Instant.now()
 
@@ -119,7 +133,10 @@ class DeathListener(
         }
     }
 
-    private fun processSharedDeath(player: Player, deathCause: String) {
+    private fun processSharedDeath(
+        player: Player,
+        deathCause: String,
+    ) {
         val manager = sharedLivesManager ?: return
 
         // Try to consume a life from the pool

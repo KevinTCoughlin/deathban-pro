@@ -14,7 +14,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class OffenseManagerTest {
-
     private lateinit var offenseManager: OffenseManager
 
     @BeforeEach
@@ -146,19 +145,20 @@ class OffenseManagerTest {
         assertEquals(0, offenseManager.getRemainingLives(data))
     }
 
-    private fun createDeath(timestamp: Instant) = DeathRecord(
-        timestamp = timestamp,
-        world = "world",
-        cause = "FALL",
-        killer = null,
-        location = LocationData(0.0, 64.0, 0.0)
-    )
+    private fun createDeath(timestamp: Instant) =
+        DeathRecord(
+            timestamp = timestamp,
+            world = "world",
+            cause = "FALL",
+            killer = null,
+            location = LocationData(0.0, 64.0, 0.0),
+        )
 
     private class TestOffenseConfig(
         override val rollingWindowEnabled: Boolean = true,
         override val rollingWindowDuration: Duration = Duration.ofHours(24),
         override val maxDeathsInWindow: Int = 3,
         override val offenseResetEnabled: Boolean = true,
-        override val offenseResetPeriod: Duration = Duration.ofDays(7)
+        override val offenseResetPeriod: Duration = Duration.ofDays(7),
     ) : OffenseConfig
 }

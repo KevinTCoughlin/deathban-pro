@@ -7,7 +7,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class SharedLivesPoolTest {
-
     @Test
     fun `addLife increases lives count`() {
         val pool = SharedLivesPool("test", lives = 5, maxLives = 10)

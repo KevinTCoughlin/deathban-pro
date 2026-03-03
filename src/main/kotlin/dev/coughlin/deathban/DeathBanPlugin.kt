@@ -21,7 +21,6 @@ import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
 
 class DeathBanPlugin : JavaPlugin() {
-
     lateinit var settings: Settings
         private set
 
@@ -70,12 +69,14 @@ class DeathBanPlugin : JavaPlugin() {
 
         // Initialize shared lives manager if in shared mode
         if (settings.mode == BanMode.SHARED) {
-            sharedLivesManager = SharedLivesManager(
-                dataFolder, logger,
-                settings.sharedLivesDefault,
-                settings.sharedLivesMax,
-                this
-            )
+            sharedLivesManager =
+                SharedLivesManager(
+                    dataFolder,
+                    logger,
+                    settings.sharedLivesDefault,
+                    settings.sharedLivesMax,
+                    this,
+                )
         }
 
         // Register listeners
@@ -127,9 +128,16 @@ class DeathBanPlugin : JavaPlugin() {
     }
 
     private fun registerListeners() {
-        val deathListener = DeathListener(
-            this, settings, messages, dataManager, offenseManager, banManager, sharedLivesManager
-        )
+        val deathListener =
+            DeathListener(
+                this,
+                settings,
+                messages,
+                dataManager,
+                offenseManager,
+                banManager,
+                sharedLivesManager,
+            )
         joinListener = JoinListener(this, messages, dataManager)
 
         server.pluginManager.registerEvents(deathListener, this)
@@ -153,25 +161,35 @@ class DeathBanPlugin : JavaPlugin() {
 
         val metrics = Metrics(this, BSTATS_PLUGIN_ID)
 
-        metrics.addCustomChart(SimplePie("ban_mode") {
-            settings.mode.name.lowercase()
-        })
+        metrics.addCustomChart(
+            SimplePie("ban_mode") {
+                settings.mode.name.lowercase()
+            },
+        )
 
-        metrics.addCustomChart(SimplePie("active_theme") {
-            themeManager.getActiveThemeId()
-        })
+        metrics.addCustomChart(
+            SimplePie("active_theme") {
+                themeManager.getActiveThemeId()
+            },
+        )
 
-        metrics.addCustomChart(SimplePie("rolling_window") {
-            if (settings.rollingWindowEnabled) "enabled" else "disabled"
-        })
+        metrics.addCustomChart(
+            SimplePie("rolling_window") {
+                if (settings.rollingWindowEnabled) "enabled" else "disabled"
+            },
+        )
 
-        metrics.addCustomChart(SimplePie("max_deaths_threshold") {
-            settings.maxDeathsInWindow.toString()
-        })
+        metrics.addCustomChart(
+            SimplePie("max_deaths_threshold") {
+                settings.maxDeathsInWindow.toString()
+            },
+        )
 
-        metrics.addCustomChart(SingleLineChart("total_bans") {
-            banManager.getTotalBansIssued()
-        })
+        metrics.addCustomChart(
+            SingleLineChart("total_bans") {
+                banManager.getTotalBansIssued()
+            },
+        )
 
         logger.info("bStats metrics initialized")
     }
@@ -189,9 +207,10 @@ class DeathBanPlugin : JavaPlugin() {
         }
 
         UpdateChecker(this, SPIGOT_RESOURCE_ID) { current, latest ->
-            updateNotification = ColorUtil.colorize(
-                "&e[DeathBan Pro] &fUpdate available: &a$latest &f(running &c$current&f)"
-            )
+            updateNotification =
+                ColorUtil.colorize(
+                    "&e[DeathBan Pro] &fUpdate available: &a$latest &f(running &c$current&f)",
+                )
             logger.warning("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             logger.warning("  DeathBan Pro Update Available!")
             logger.warning("  Current: $current → Latest: $latest")

@@ -13,10 +13,11 @@ class SharedLivesManager(
     private val logger: Logger,
     private val defaultLives: Int,
     private val maxLives: Int,
-    private val plugin: Plugin? = null
+    private val plugin: Plugin? = null,
 ) {
     private val poolsFile = File(dataFolder, "shared-lives.yml")
     private val pools = mutableMapOf<String, SharedLivesPool>()
+
     @Volatile private var dirty = false
 
     init {
@@ -25,15 +26,14 @@ class SharedLivesManager(
 
     fun getGlobalPool(): SharedLivesPool = getOrCreatePool(SharedLivesPool.GLOBAL_POOL_ID)
 
-    fun getOrCreatePool(id: String): SharedLivesPool {
-        return pools.getOrPut(id) {
+    fun getOrCreatePool(id: String): SharedLivesPool =
+        pools.getOrPut(id) {
             SharedLivesPool(
                 id = id,
                 lives = defaultLives,
-                maxLives = maxLives
+                maxLives = maxLives,
             ).also { saveAsync() }
         }
-    }
 
     fun getPool(id: String): SharedLivesPool? = pools[id]
 
@@ -58,7 +58,10 @@ class SharedLivesManager(
         return false
     }
 
-    fun addLife(uuid: UUID, poolId: String? = null): Boolean {
+    fun addLife(
+        uuid: UUID,
+        poolId: String? = null,
+    ): Boolean {
         val pool = poolId?.let { getOrCreatePool(it) } ?: getPoolForPlayer(uuid) ?: getGlobalPool()
         if (pool.addLife(uuid)) {
             saveAsync()
@@ -68,7 +71,10 @@ class SharedLivesManager(
         return false
     }
 
-    fun joinPool(uuid: UUID, poolId: String): Boolean {
+    fun joinPool(
+        uuid: UUID,
+        poolId: String,
+    ): Boolean {
         // Leave current pool first
         leavePool(uuid)
 
@@ -91,15 +97,19 @@ class SharedLivesManager(
         return left
     }
 
-    fun createTeamPool(id: String, creator: UUID): SharedLivesPool? {
+    fun createTeamPool(
+        id: String,
+        creator: UUID,
+    ): SharedLivesPool? {
         if (pools.containsKey(id)) return null
         if (id == SharedLivesPool.GLOBAL_POOL_ID) return null
 
-        val pool = SharedLivesPool(
-            id = id,
-            lives = defaultLives,
-            maxLives = maxLives
-        )
+        val pool =
+            SharedLivesPool(
+                id = id,
+                lives = defaultLives,
+                maxLives = maxLives,
+            )
         pool.addMember(creator)
         pools[id] = pool
         saveAsync()
@@ -122,14 +132,17 @@ class SharedLivesManager(
     fun saveAsync() {
         dirty = true
         plugin?.let { p ->
-            p.server.scheduler.runTaskAsynchronously(p, Runnable {
-                try {
-                    writeToDisk()
-                    dirty = false
-                } catch (e: Exception) {
-                    logger.severe("Failed to async-save shared lives: ${e.message}")
-                }
-            })
+            p.server.scheduler.runTaskAsynchronously(
+                p,
+                Runnable {
+                    try {
+                        writeToDisk()
+                        dirty = false
+                    } catch (e: Exception) {
+                        logger.severe("Failed to async-save shared lives: ${e.message}")
+                    }
+                },
+            )
         } ?: run {
             writeToDisk()
             dirty = false
@@ -160,9 +173,10 @@ class SharedLivesManager(
             config.set("$id.members", pool.members.map { it.toString() })
             config.set("$id.last-modified", pool.lastModified.toString())
 
-            val contribs = pool.contributions.map { (uuid, count) ->
-                mapOf("uuid" to uuid.toString(), "count" to count)
-            }
+            val contribs =
+                pool.contributions.map { (uuid, count) ->
+                    mapOf("uuid" to uuid.toString(), "count" to count)
+                }
             config.set("$id.contributions", contribs)
         }
 
@@ -172,11 +186,12 @@ class SharedLivesManager(
     private fun load() {
         if (!poolsFile.exists()) {
             // Create default global pool
-            pools[SharedLivesPool.GLOBAL_POOL_ID] = SharedLivesPool(
-                id = SharedLivesPool.GLOBAL_POOL_ID,
-                lives = defaultLives,
-                maxLives = maxLives
-            )
+            pools[SharedLivesPool.GLOBAL_POOL_ID] =
+                SharedLivesPool(
+                    id = SharedLivesPool.GLOBAL_POOL_ID,
+                    lives = defaultLives,
+                    maxLives = maxLives,
+                )
             save()
             return
         }
@@ -184,11 +199,12 @@ class SharedLivesManager(
         val config = YamlConfiguration.loadConfiguration(poolsFile)
 
         config.getKeys(false).forEach { id ->
-            val pool = SharedLivesPool(
-                id = id,
-                lives = config.getInt("$id.lives", defaultLives),
-                maxLives = config.getInt("$id.max-lives", maxLives)
-            )
+            val pool =
+                SharedLivesPool(
+                    id = id,
+                    lives = config.getInt("$id.lives", defaultLives),
+                    maxLives = config.getInt("$id.max-lives", maxLives),
+                )
 
             config.getStringList("$id.members").forEach { uuidStr ->
                 runCatching { UUID.fromString(uuidStr) }.getOrNull()?.let {

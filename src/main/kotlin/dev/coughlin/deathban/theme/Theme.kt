@@ -33,24 +33,31 @@ interface Theme {
 
     // Ban screen customization
     fun getBanTitle(): String
+
     fun getBanSubtitle(duration: String): String
+
     fun getKickMessage(context: BanContext): String
 
     // Return screen customization
     fun getReturnTitle(): String
+
     fun getReturnSubtitle(): String
+
     fun getReturnMessage(): String
 
     // Warning messages
     fun getWarningFinalLife(): String
+
     fun getWarningNearLimit(remaining: Int): String
 
     // Optional: Sound effects (null = no sound)
     fun getDeathSound(): Sound? = null
+
     fun getReturnSound(): Sound? = null
 
     // Optional: Particle effects (null = no particles)
     fun getDeathParticle(): Particle? = null
+
     fun getReturnParticle(): Particle? = null
 
     // Optional: Called when theme is loaded
@@ -71,5 +78,5 @@ data class BanContext(
     val returnTime: String,
     val isSharedMode: Boolean = false,
     val poolLives: Int = 0,
-    val poolMax: Int = 0
+    val poolMax: Int = 0,
 )

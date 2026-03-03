@@ -14,9 +14,8 @@ class JoinListener(
     private val plugin: Plugin,
     private val messages: Messages,
     private val dataManager: PlayerDataManager,
-    var updateNotification: String? = null
+    var updateNotification: String? = null,
 ) : Listener {
-
     /**
      * Pre-load player data from disk on the async login thread so that
      * the subsequent [onPlayerLogin] (main thread) never touches the filesystem.
@@ -39,7 +38,7 @@ class JoinListener(
         if (ban != null && data.isBanned()) {
             event.disallow(
                 PlayerLoginEvent.Result.KICK_BANNED,
-                messages.getKickMessage(ban)
+                messages.getKickMessage(ban),
             )
             return
         }
@@ -58,16 +57,22 @@ class JoinListener(
         // Show return message if ban just expired
         if (data.currentBan == null && data.deaths.isNotEmpty()) {
             // Check if they were recently banned (within last login)
-            plugin.server.scheduler.runTaskLater(plugin, Runnable {
-                if (player.isOnline) {
-                    player.sendTitle(
-                        messages.getReturnTitle(),
-                        messages.getReturnSubtitle(),
-                        10, 70, 20
-                    )
-                    player.sendMessage(messages.getReturnMessage())
-                }
-            }, 20L)
+            plugin.server.scheduler.runTaskLater(
+                plugin,
+                Runnable {
+                    if (player.isOnline) {
+                        player.sendTitle(
+                            messages.getReturnTitle(),
+                            messages.getReturnSubtitle(),
+                            10,
+                            70,
+                            20,
+                        )
+                        player.sendMessage(messages.getReturnMessage())
+                    }
+                },
+                20L,
+            )
         }
 
         // Notify of pardon (set by admin while offline)
@@ -75,20 +80,28 @@ class JoinListener(
             data.pendingPardon = false
             dataManager.saveAsync(data)
 
-            plugin.server.scheduler.runTaskLater(plugin, Runnable {
-                if (player.isOnline) {
-                    player.sendMessage(messages.getPardonNotification())
-                }
-            }, 40L)
+            plugin.server.scheduler.runTaskLater(
+                plugin,
+                Runnable {
+                    if (player.isOnline) {
+                        player.sendMessage(messages.getPardonNotification())
+                    }
+                },
+                40L,
+            )
         }
 
         // Notify ops of updates
         if (player.hasPermission("deathban.admin") && updateNotification != null) {
-            plugin.server.scheduler.runTaskLater(plugin, Runnable {
-                if (player.isOnline) {
-                    player.sendMessage(updateNotification!!)
-                }
-            }, 60L)
+            plugin.server.scheduler.runTaskLater(
+                plugin,
+                Runnable {
+                    if (player.isOnline) {
+                        player.sendMessage(updateNotification!!)
+                    }
+                },
+                60L,
+            )
         }
     }
 }

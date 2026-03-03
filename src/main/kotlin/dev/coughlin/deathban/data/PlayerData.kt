@@ -10,7 +10,7 @@ data class PlayerData(
     var lastDeathTime: Instant? = null,
     val deaths: MutableList<DeathRecord> = mutableListOf(),
     var currentBan: BanRecord? = null,
-    var pendingPardon: Boolean = false
+    var pendingPardon: Boolean = false,
 ) {
     fun isBanned(): Boolean {
         val ban = currentBan ?: return false
@@ -30,20 +30,21 @@ data class DeathRecord(
     val world: String,
     val cause: String,
     val killer: UUID? = null,
-    val location: LocationData
+    val location: LocationData,
 )
 
 data class LocationData(
     val x: Double,
     val y: Double,
-    val z: Double
+    val z: Double,
 ) {
     companion object {
-        fun from(location: Location) = LocationData(
-            x = location.x,
-            y = location.y,
-            z = location.z
-        )
+        fun from(location: Location) =
+            LocationData(
+                x = location.x,
+                y = location.y,
+                z = location.z,
+            )
     }
 }
 
@@ -51,5 +52,5 @@ data class BanRecord(
     val startTime: Instant,
     val endTime: Instant,
     val offenseLevel: Int,
-    val deathCause: String
+    val deathCause: String,
 )

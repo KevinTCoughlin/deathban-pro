@@ -6,14 +6,16 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 object TimeUtil {
-
-    private val formatter = DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a")
-        .withZone(ZoneId.systemDefault())
+    private val formatter =
+        DateTimeFormatter
+            .ofPattern("MMM d, yyyy h:mm a")
+            .withZone(ZoneId.systemDefault())
 
     fun parseDuration(input: String): Duration {
         val trimmed = input.trim().lowercase()
-        val number = trimmed.dropLast(1).toLongOrNull()
-            ?: throw IllegalArgumentException("Invalid duration format: $input")
+        val number =
+            trimmed.dropLast(1).toLongOrNull()
+                ?: throw IllegalArgumentException("Invalid duration format: $input")
 
         return when (trimmed.last()) {
             's' -> Duration.ofSeconds(number)

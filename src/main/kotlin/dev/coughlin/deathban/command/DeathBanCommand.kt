@@ -16,10 +16,14 @@ class DeathBanCommand(
     private val messages: Messages,
     private val dataManager: PlayerDataManager,
     private val offenseManager: OffenseManager,
-    private val banManager: BanManager
+    private val banManager: BanManager,
 ) : CommandExecutor {
-
-    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
+    override fun onCommand(
+        sender: CommandSender,
+        command: Command,
+        label: String,
+        args: Array<String>,
+    ): Boolean {
         if (args.isEmpty()) {
             return handleHelp(sender)
         }
@@ -49,7 +53,10 @@ class DeathBanCommand(
         return true
     }
 
-    private fun handleCheck(sender: CommandSender, args: Array<String>): Boolean {
+    private fun handleCheck(
+        sender: CommandSender,
+        args: Array<String>,
+    ): Boolean {
         // Check self
         if (args.size == 1) {
             if (!sender.hasPermission("deathban.check")) {
@@ -67,11 +74,13 @@ class DeathBanCommand(
             if (data.isBanned()) {
                 sender.sendMessage(messages.getCheckBanned(sender.name, data.currentBan!!))
             } else {
-                sender.sendMessage(messages.getCheckSelf(
-                    data.offenseLevel,
-                    deathsInWindow,
-                    plugin.settings.maxDeathsInWindow
-                ))
+                sender.sendMessage(
+                    messages.getCheckSelf(
+                        data.offenseLevel,
+                        deathsInWindow,
+                        plugin.settings.maxDeathsInWindow,
+                    ),
+                )
             }
             return true
         }
@@ -83,6 +92,7 @@ class DeathBanCommand(
         }
 
         val targetName = args[1]
+
         @Suppress("DEPRECATION")
         val target = Bukkit.getOfflinePlayer(targetName)
 
@@ -102,17 +112,22 @@ class DeathBanCommand(
         if (data.isBanned()) {
             sender.sendMessage(messages.getCheckBanned(targetName, data.currentBan!!))
         } else {
-            sender.sendMessage(messages.getCheckOther(
-                targetName,
-                data.offenseLevel,
-                deathsInWindow,
-                plugin.settings.maxDeathsInWindow
-            ))
+            sender.sendMessage(
+                messages.getCheckOther(
+                    targetName,
+                    data.offenseLevel,
+                    deathsInWindow,
+                    plugin.settings.maxDeathsInWindow,
+                ),
+            )
         }
         return true
     }
 
-    private fun handleReset(sender: CommandSender, args: Array<String>): Boolean {
+    private fun handleReset(
+        sender: CommandSender,
+        args: Array<String>,
+    ): Boolean {
         if (!sender.hasPermission("deathban.admin")) {
             sender.sendMessage(messages.getNoPermission())
             return true
@@ -124,6 +139,7 @@ class DeathBanCommand(
         }
 
         val targetName = args[1]
+
         @Suppress("DEPRECATION")
         val target = Bukkit.getOfflinePlayer(targetName)
 
@@ -138,7 +154,10 @@ class DeathBanCommand(
         return true
     }
 
-    private fun handlePardon(sender: CommandSender, args: Array<String>): Boolean {
+    private fun handlePardon(
+        sender: CommandSender,
+        args: Array<String>,
+    ): Boolean {
         if (!sender.hasPermission("deathban.admin")) {
             sender.sendMessage(messages.getNoPermission())
             return true
@@ -150,6 +169,7 @@ class DeathBanCommand(
         }
 
         val targetName = args[1]
+
         @Suppress("DEPRECATION")
         val target = Bukkit.getOfflinePlayer(targetName)
 
@@ -167,7 +187,10 @@ class DeathBanCommand(
         return true
     }
 
-    private fun handleLives(sender: CommandSender, args: Array<String>): Boolean {
+    private fun handleLives(
+        sender: CommandSender,
+        args: Array<String>,
+    ): Boolean {
         if (!sender.hasPermission("deathban.use")) {
             sender.sendMessage(messages.getNoPermission())
             return true
@@ -181,11 +204,12 @@ class DeathBanCommand(
 
         // /deathban lives - show pool status
         if (args.size == 1) {
-            val pool = if (sender is Player) {
-                manager.getPoolForPlayer(sender.uniqueId) ?: manager.getGlobalPool()
-            } else {
-                manager.getGlobalPool()
-            }
+            val pool =
+                if (sender is Player) {
+                    manager.getPoolForPlayer(sender.uniqueId) ?: manager.getGlobalPool()
+                } else {
+                    manager.getGlobalPool()
+                }
             sender.sendMessage(messages.getPoolStatus(pool.id, pool.lives, pool.maxLives))
             return true
         }
@@ -229,7 +253,10 @@ class DeathBanCommand(
         return true
     }
 
-    private fun handleTeam(sender: CommandSender, args: Array<String>): Boolean {
+    private fun handleTeam(
+        sender: CommandSender,
+        args: Array<String>,
+    ): Boolean {
         if (sender !is Player) {
             sender.sendMessage(messages.get("errors.console-only-player"))
             return true
@@ -297,7 +324,10 @@ class DeathBanCommand(
         return true
     }
 
-    private fun handleTheme(sender: CommandSender, args: Array<String>): Boolean {
+    private fun handleTheme(
+        sender: CommandSender,
+        args: Array<String>,
+    ): Boolean {
         if (!sender.hasPermission("deathban.use")) {
             sender.sendMessage(messages.getNoPermission())
             return true
@@ -320,12 +350,15 @@ class DeathBanCommand(
                 sender.sendMessage(messages.prefixed("theme.list-header"))
                 themes.forEach { theme ->
                     val active = if (theme.id == themeManager.getActiveThemeId()) " &a(active)" else ""
-                    sender.sendMessage(messages.get("theme.list-item",
-                        "id" to theme.id,
-                        "name" to theme.name,
-                        "author" to theme.author,
-                        "active" to active
-                    ))
+                    sender.sendMessage(
+                        messages.get(
+                            "theme.list-item",
+                            "id" to theme.id,
+                            "name" to theme.name,
+                            "author" to theme.author,
+                            "active" to active,
+                        ),
+                    )
                 }
             }
             "set" -> {

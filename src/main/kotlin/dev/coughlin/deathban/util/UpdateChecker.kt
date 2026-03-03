@@ -6,38 +6,51 @@ import java.net.URI
 class UpdateChecker(
     private val plugin: Plugin,
     private val resourceId: Int,
-    private val onUpdateFound: (currentVersion: String, latestVersion: String) -> Unit
+    private val onUpdateFound: (currentVersion: String, latestVersion: String) -> Unit,
 ) {
-
     fun checkForUpdates() {
-        plugin.server.scheduler.runTaskAsynchronously(plugin, Runnable {
-            try {
-                val latestVersion = fetchLatestVersion()
-                val currentVersion = plugin.description.version.removeSuffix("-SNAPSHOT")
+        plugin.server.scheduler.runTaskAsynchronously(
+            plugin,
+            Runnable {
+                try {
+                    val latestVersion = fetchLatestVersion()
+                    val currentVersion = plugin.description.version.removeSuffix("-SNAPSHOT")
 
-                if (isNewerVersion(latestVersion, currentVersion)) {
-                    plugin.server.scheduler.runTask(plugin, Runnable {
-                        onUpdateFound(currentVersion, latestVersion)
-                    })
-                } else {
-                    plugin.logger.info("Running latest version ($currentVersion)")
+                    if (isNewerVersion(latestVersion, currentVersion)) {
+                        plugin.server.scheduler.runTask(
+                            plugin,
+                            Runnable {
+                                onUpdateFound(currentVersion, latestVersion)
+                            },
+                        )
+                    } else {
+                        plugin.logger.info("Running latest version ($currentVersion)")
+                    }
+                } catch (e: Exception) {
+                    plugin.logger.warning("Failed to check for updates: ${e.message}")
                 }
-            } catch (e: Exception) {
-                plugin.logger.warning("Failed to check for updates: ${e.message}")
-            }
-        })
+            },
+        )
     }
 
     private fun fetchLatestVersion(): String {
         val url = URI("https://api.spigotmc.org/legacy/update.php?resource=$resourceId").toURL()
-        return url.openConnection().apply {
-            connectTimeout = 5000
-            readTimeout = 5000
-            setRequestProperty("User-Agent", "DeathBanPro/${plugin.description.version}")
-        }.getInputStream().bufferedReader().readText().trim()
+        return url
+            .openConnection()
+            .apply {
+                connectTimeout = 5000
+                readTimeout = 5000
+                setRequestProperty("User-Agent", "DeathBanPro/${plugin.description.version}")
+            }.getInputStream()
+            .bufferedReader()
+            .readText()
+            .trim()
     }
 
-    private fun isNewerVersion(latest: String, current: String): Boolean {
+    private fun isNewerVersion(
+        latest: String,
+        current: String,
+    ): Boolean {
         val latestParts = latest.split(".").map { it.toIntOrNull() ?: 0 }
         val currentParts = current.split(".").map { it.toIntOrNull() ?: 0 }
 

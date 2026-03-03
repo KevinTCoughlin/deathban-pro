@@ -18,20 +18,25 @@ class BanManager(
     private val plugin: DeathBanPlugin,
     private val settings: Settings,
     private val messages: Messages,
-    private val dataManager: PlayerDataManager
+    private val dataManager: PlayerDataManager,
 ) {
     private val totalBansIssued = AtomicInteger(0)
 
-    fun applyBan(player: Player, data: PlayerData, deathCause: String) {
+    fun applyBan(
+        player: Player,
+        data: PlayerData,
+        deathCause: String,
+    ) {
         val duration = settings.getBanDuration(data.offenseLevel)
         val now = Instant.now()
 
-        val ban = BanRecord(
-            startTime = now,
-            endTime = now.plus(duration),
-            offenseLevel = data.offenseLevel,
-            deathCause = deathCause
-        )
+        val ban =
+            BanRecord(
+                startTime = now,
+                endTime = now.plus(duration),
+                offenseLevel = data.offenseLevel,
+                deathCause = deathCause,
+            )
 
         data.currentBan = ban
         dataManager.saveAsync(data)
@@ -44,7 +49,9 @@ class BanManager(
         player.sendTitle(
             theme.getBanTitle(),
             theme.getBanSubtitle(TimeUtil.formatDuration(duration)),
-            10, 70, 20
+            10,
+            70,
+            20,
         )
 
         // Play sound if enabled
@@ -62,33 +69,42 @@ class BanManager(
         }
 
         // Schedule kick after respawn sequence completes
-        val context = BanContext(
-            playerName = player.name,
-            duration = TimeUtil.formatDuration(duration),
-            offenseLevel = data.offenseLevel,
-            deathCause = deathCause,
-            returnTime = TimeUtil.formatInstant(ban.endTime)
-        )
+        val context =
+            BanContext(
+                playerName = player.name,
+                duration = TimeUtil.formatDuration(duration),
+                offenseLevel = data.offenseLevel,
+                deathCause = deathCause,
+                returnTime = TimeUtil.formatInstant(ban.endTime),
+            )
 
-        Bukkit.getScheduler().runTaskLater(plugin, Runnable {
-            if (player.isOnline) {
-                player.kickPlayer(theme.getKickMessage(context))
-            }
-        }, 60L) // 3 seconds after death
+        Bukkit.getScheduler().runTaskLater(
+            plugin,
+            Runnable {
+                if (player.isOnline) {
+                    player.kickPlayer(theme.getKickMessage(context))
+                }
+            },
+            60L,
+        ) // 3 seconds after death
 
         plugin.logger.info("Banned ${player.name} for ${TimeUtil.formatDuration(duration)} (offense level ${data.offenseLevel})")
     }
 
-    fun applySharedBan(player: Player, deathCause: String) {
+    fun applySharedBan(
+        player: Player,
+        deathCause: String,
+    ) {
         val duration = settings.sharedLivesEmptyPoolBan
         val now = Instant.now()
 
-        val ban = BanRecord(
-            startTime = now,
-            endTime = now.plus(duration),
-            offenseLevel = 0, // Not used in shared mode
-            deathCause = deathCause
-        )
+        val ban =
+            BanRecord(
+                startTime = now,
+                endTime = now.plus(duration),
+                offenseLevel = 0, // Not used in shared mode
+                deathCause = deathCause,
+            )
 
         val data = dataManager.getOrCreate(player.uniqueId)
         data.currentBan = ban
@@ -101,7 +117,9 @@ class BanManager(
         player.sendTitle(
             theme.getBanTitle(),
             theme.getBanSubtitle(TimeUtil.formatDuration(duration)),
-            10, 70, 20
+            10,
+            70,
+            20,
         )
 
         // Play sound if enabled
@@ -120,23 +138,28 @@ class BanManager(
 
         // Build context for kick message
         val pool = plugin.sharedLivesManager?.getGlobalPool()
-        val context = BanContext(
-            playerName = player.name,
-            duration = TimeUtil.formatDuration(duration),
-            offenseLevel = 0,
-            deathCause = deathCause,
-            returnTime = TimeUtil.formatInstant(ban.endTime),
-            isSharedMode = true,
-            poolLives = pool?.lives ?: 0,
-            poolMax = pool?.maxLives ?: 0
-        )
+        val context =
+            BanContext(
+                playerName = player.name,
+                duration = TimeUtil.formatDuration(duration),
+                offenseLevel = 0,
+                deathCause = deathCause,
+                returnTime = TimeUtil.formatInstant(ban.endTime),
+                isSharedMode = true,
+                poolLives = pool?.lives ?: 0,
+                poolMax = pool?.maxLives ?: 0,
+            )
 
         // Schedule kick after respawn sequence completes
-        Bukkit.getScheduler().runTaskLater(plugin, Runnable {
-            if (player.isOnline) {
-                player.kickPlayer(theme.getKickMessage(context))
-            }
-        }, 60L)
+        Bukkit.getScheduler().runTaskLater(
+            plugin,
+            Runnable {
+                if (player.isOnline) {
+                    player.kickPlayer(theme.getKickMessage(context))
+                }
+            },
+            60L,
+        )
 
         plugin.logger.info("Banned ${player.name} for ${TimeUtil.formatDuration(duration)} (shared pool empty)")
     }
