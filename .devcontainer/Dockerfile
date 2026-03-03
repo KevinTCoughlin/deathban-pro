@@ -1,7 +1,7 @@
-FROM mcr.microsoft.com/devcontainers/java:21
+FROM mcr.microsoft.com/devcontainers/java:25
 
 # Install Gradle
-ARG GRADLE_VERSION=8.5
+ARG GRADLE_VERSION=9.3.1
 RUN curl -fsSL https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip -o /tmp/gradle.zip \
     && unzip -d /opt /tmp/gradle.zip \
     && rm /tmp/gradle.zip \
