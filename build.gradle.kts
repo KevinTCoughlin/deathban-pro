@@ -16,7 +16,7 @@ dependencies {
     compileOnly("org.spigotmc:spigot-api:1.21.11-R0.2-SNAPSHOT")
     implementation("org.bstats:bstats-bukkit:3.0.2")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+    testImplementation("org.junit.jupiter:junit-jupiter:6.0.2")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("io.mockk:mockk:1.14.7")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
