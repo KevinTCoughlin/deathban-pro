@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/java:25
+FROM mcr.microsoft.com/devcontainers/java:25-noble
 
 # Install Gradle
 ARG GRADLE_VERSION=9.3.1

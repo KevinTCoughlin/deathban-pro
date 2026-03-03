@@ -1,9 +1,10 @@
 {
   "name": "DeathBan Pro",
-  "image": "mcr.microsoft.com/devcontainers/java:25",
+  "image": "mcr.microsoft.com/devcontainers/java:25-noble",
   "features": {
     "ghcr.io/devcontainers/features/java:1": {
       "version": "25",
+      "jdkDistro": "temurin",
       "installGradle": "true",
       "gradleVersion": "9.3.1"
     }
