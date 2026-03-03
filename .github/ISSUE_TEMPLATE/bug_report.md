@@ -21,7 +21,7 @@ What you expected to happen.
 What actually happened.
 
 ## Environment
-- **Server Software:** (e.g., Paper 1.21.4, Spigot 1.21.4)
+- **Server Software:** (e.g., Paper 1.21.11, Spigot 1.21.11)
 - **Java Version:** (e.g., Java 25)
 - **Plugin Version:** (e.g., 1.0.0)
 - **Other Plugins:** (list any other plugins that might be relevant)
