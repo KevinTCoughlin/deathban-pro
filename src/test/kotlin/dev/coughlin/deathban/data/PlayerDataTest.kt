@@ -9,16 +9,16 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class PlayerDataTest {
-
     @Test
     fun `isBanned returns true when ban is active`() {
         val data = PlayerData(UUID.randomUUID())
-        data.currentBan = BanRecord(
-            startTime = Instant.now().minusSeconds(60),
-            endTime = Instant.now().plusSeconds(3600), // 1 hour from now
-            offenseLevel = 1,
-            deathCause = "FALL"
-        )
+        data.currentBan =
+            BanRecord(
+                startTime = Instant.now().minusSeconds(60),
+                endTime = Instant.now().plusSeconds(3600), // 1 hour from now
+                offenseLevel = 1,
+                deathCause = "FALL",
+            )
 
         assertTrue(data.isBanned())
     }
@@ -26,12 +26,13 @@ class PlayerDataTest {
     @Test
     fun `isBanned returns false when ban expired`() {
         val data = PlayerData(UUID.randomUUID())
-        data.currentBan = BanRecord(
-            startTime = Instant.now().minusSeconds(7200),
-            endTime = Instant.now().minusSeconds(3600), // 1 hour ago
-            offenseLevel = 1,
-            deathCause = "FALL"
-        )
+        data.currentBan =
+            BanRecord(
+                startTime = Instant.now().minusSeconds(7200),
+                endTime = Instant.now().minusSeconds(3600), // 1 hour ago
+                offenseLevel = 1,
+                deathCause = "FALL",
+            )
 
         assertFalse(data.isBanned())
     }
@@ -45,12 +46,13 @@ class PlayerDataTest {
     @Test
     fun `clearExpiredBan removes expired ban`() {
         val data = PlayerData(UUID.randomUUID())
-        data.currentBan = BanRecord(
-            startTime = Instant.now().minusSeconds(7200),
-            endTime = Instant.now().minusSeconds(3600),
-            offenseLevel = 1,
-            deathCause = "FALL"
-        )
+        data.currentBan =
+            BanRecord(
+                startTime = Instant.now().minusSeconds(7200),
+                endTime = Instant.now().minusSeconds(3600),
+                offenseLevel = 1,
+                deathCause = "FALL",
+            )
 
         data.clearExpiredBan()
 
@@ -60,12 +62,13 @@ class PlayerDataTest {
     @Test
     fun `clearExpiredBan keeps active ban`() {
         val data = PlayerData(UUID.randomUUID())
-        val ban = BanRecord(
-            startTime = Instant.now().minusSeconds(60),
-            endTime = Instant.now().plusSeconds(3600),
-            offenseLevel = 1,
-            deathCause = "FALL"
-        )
+        val ban =
+            BanRecord(
+                startTime = Instant.now().minusSeconds(60),
+                endTime = Instant.now().plusSeconds(3600),
+                offenseLevel = 1,
+                deathCause = "FALL",
+            )
         data.currentBan = ban
 
         data.clearExpiredBan()

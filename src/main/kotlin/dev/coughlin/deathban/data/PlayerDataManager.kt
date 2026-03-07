@@ -11,7 +11,7 @@ import java.util.logging.Logger
 class PlayerDataManager(
     private val dataFolder: File,
     private val logger: Logger,
-    private val plugin: Plugin? = null
+    private val plugin: Plugin? = null,
 ) {
     private val playersFolder = File(dataFolder, "players")
     private val cache = ConcurrentHashMap<UUID, PlayerData>()
@@ -24,11 +24,9 @@ class PlayerDataManager(
         loadPendingBans()
     }
 
-    fun getOrCreate(uuid: UUID): PlayerData =
-        cache.getOrPut(uuid) { load(uuid) ?: PlayerData(uuid) }
+    fun getOrCreate(uuid: UUID): PlayerData = cache.getOrPut(uuid) { load(uuid) ?: PlayerData(uuid) }
 
-    fun get(uuid: UUID): PlayerData? =
-        cache[uuid] ?: load(uuid)?.also { cache[uuid] = it }
+    fun get(uuid: UUID): PlayerData? = cache[uuid] ?: load(uuid)?.also { cache[uuid] = it }
 
     /**
      * Pre-load a player's data into the cache.
@@ -58,14 +56,17 @@ class PlayerDataManager(
         dirty.add(data.uuid)
 
         plugin?.let { p ->
-            p.server.scheduler.runTaskAsynchronously(p, Runnable {
-                try {
-                    writeToDisk(data)
-                    dirty.remove(data.uuid)
-                } catch (e: Exception) {
-                    logger.severe("Failed to async-save data for ${data.uuid}: ${e.message}")
-                }
-            })
+            p.server.scheduler.runTaskAsynchronously(
+                p,
+                Runnable {
+                    try {
+                        writeToDisk(data)
+                        dirty.remove(data.uuid)
+                    } catch (e: Exception) {
+                        logger.severe("Failed to async-save data for ${data.uuid}: ${e.message}")
+                    }
+                },
+            )
         } ?: run {
             // Fallback: no plugin reference (e.g. tests) — save synchronously
             writeToDisk(data)
@@ -103,19 +104,21 @@ class PlayerDataManager(
             config.set("current-ban.death-cause", ban.deathCause)
         }
 
-        val deathsList = data.deaths.map { death ->
-            mapOf(
-                "timestamp" to death.timestamp.toString(),
-                "world" to death.world,
-                "cause" to death.cause,
-                "killer" to death.killer?.toString(),
-                "location" to mapOf(
-                    "x" to death.location.x,
-                    "y" to death.location.y,
-                    "z" to death.location.z
+        val deathsList =
+            data.deaths.map { death ->
+                mapOf(
+                    "timestamp" to death.timestamp.toString(),
+                    "world" to death.world,
+                    "cause" to death.cause,
+                    "killer" to death.killer?.toString(),
+                    "location" to
+                        mapOf(
+                            "x" to death.location.x,
+                            "y" to death.location.y,
+                            "z" to death.location.z,
+                        ),
                 )
-            )
-        }
+            }
         config.set("deaths", deathsList)
 
         config.save(file)
@@ -133,12 +136,13 @@ class PlayerDataManager(
         data.pendingPardon = config.getBoolean("pending-pardon", false)
 
         if (config.contains("current-ban")) {
-            data.currentBan = BanRecord(
-                startTime = Instant.parse(config.getString("current-ban.start-time")),
-                endTime = Instant.parse(config.getString("current-ban.end-time")),
-                offenseLevel = config.getInt("current-ban.offense-level"),
-                deathCause = config.getString("current-ban.death-cause") ?: "UNKNOWN"
-            )
+            data.currentBan =
+                BanRecord(
+                    startTime = Instant.parse(config.getString("current-ban.start-time")),
+                    endTime = Instant.parse(config.getString("current-ban.end-time")),
+                    offenseLevel = config.getInt("current-ban.offense-level"),
+                    deathCause = config.getString("current-ban.death-cause") ?: "UNKNOWN",
+                )
         }
 
         @Suppress("UNCHECKED_CAST")
@@ -151,12 +155,13 @@ class PlayerDataManager(
                     world = deathMap["world"] as String,
                     cause = deathMap["cause"] as String,
                     killer = (deathMap["killer"] as? String)?.let { UUID.fromString(it) },
-                    location = LocationData(
-                        x = (locationMap["x"] as Number).toDouble(),
-                        y = (locationMap["y"] as Number).toDouble(),
-                        z = (locationMap["z"] as Number).toDouble()
-                    )
-                )
+                    location =
+                        LocationData(
+                            x = (locationMap["x"] as Number).toDouble(),
+                            y = (locationMap["y"] as Number).toDouble(),
+                            z = (locationMap["z"] as Number).toDouble(),
+                        ),
+                ),
             )
         }
 
@@ -166,7 +171,8 @@ class PlayerDataManager(
     private fun getPlayerFile(uuid: UUID) = File(playersFolder, "$uuid.yml")
 
     fun getAllStoredPlayers(): List<UUID> =
-        playersFolder.listFiles { f -> f.extension == "yml" }
+        playersFolder
+            .listFiles { f -> f.extension == "yml" }
             ?.mapNotNull { file ->
                 runCatching { UUID.fromString(file.nameWithoutExtension) }.getOrNull()
             } ?: emptyList()
@@ -192,13 +198,16 @@ class PlayerDataManager(
     private fun savePendingBansAsync() {
         val snapshot = pendingBans.toList()
         plugin?.let { p ->
-            p.server.scheduler.runTaskAsynchronously(p, Runnable {
-                try {
-                    writePendingBans(snapshot)
-                } catch (e: Exception) {
-                    logger.severe("Failed to async-save pending bans: ${e.message}")
-                }
-            })
+            p.server.scheduler.runTaskAsynchronously(
+                p,
+                Runnable {
+                    try {
+                        writePendingBans(snapshot)
+                    } catch (e: Exception) {
+                        logger.severe("Failed to async-save pending bans: ${e.message}")
+                    }
+                },
+            )
         } ?: writePendingBans(snapshot)
     }
 
@@ -211,7 +220,8 @@ class PlayerDataManager(
     private fun loadPendingBans() {
         if (!pendingBansFile.exists()) return
         val config = YamlConfiguration.loadConfiguration(pendingBansFile)
-        config.getStringList("pending")
+        config
+            .getStringList("pending")
             .mapNotNull { runCatching { UUID.fromString(it) }.getOrNull() }
             .forEach { pendingBans.add(it) }
 

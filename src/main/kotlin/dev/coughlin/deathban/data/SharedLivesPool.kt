@@ -9,7 +9,7 @@ data class SharedLivesPool(
     var maxLives: Int,
     val members: MutableSet<UUID> = mutableSetOf(),
     val contributions: MutableMap<UUID, Int> = mutableMapOf(),
-    var lastModified: Instant = Instant.now()
+    var lastModified: Instant = Instant.now(),
 ) {
     companion object {
         const val GLOBAL_POOL_ID = "global"

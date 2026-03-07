@@ -8,7 +8,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class TimeUtilTest {
-
     @Test
     fun `parseDuration handles seconds`() {
         assertEquals(Duration.ofSeconds(30), TimeUtil.parseDuration("30s"))

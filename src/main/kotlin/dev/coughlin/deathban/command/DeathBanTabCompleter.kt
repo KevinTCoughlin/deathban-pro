@@ -11,25 +11,23 @@ import org.bukkit.command.TabCompleter
 class DeathBanTabCompleter(
     private val plugin: DeathBanPlugin,
     private val dataManager: PlayerDataManager,
-    private val banManager: BanManager
+    private val banManager: BanManager,
 ) : TabCompleter {
-
     override fun onTabComplete(
         sender: CommandSender,
         command: Command,
         alias: String,
-        args: Array<String>
-    ): List<String> {
-        return when (args.size) {
+        args: Array<String>,
+    ): List<String> =
+        when (args.size) {
             1 -> filterStartsWith(getSubcommands(sender), args[0])
             2 -> filterStartsWith(getSecondArg(sender, args[0]), args[1])
             3 -> filterStartsWith(getThirdArg(sender, args[0], args[1]), args[2])
             else -> emptyList()
         }
-    }
 
-    private fun getSubcommands(sender: CommandSender): List<String> {
-        return buildList {
+    private fun getSubcommands(sender: CommandSender): List<String> =
+        buildList {
             add("help")
             if (sender.hasPermission("deathban.check")) add("check")
             if (sender.hasPermission("deathban.use")) {
@@ -43,59 +41,77 @@ class DeathBanTabCompleter(
                 add("reload")
             }
         }
-    }
 
-    private fun getSecondArg(sender: CommandSender, subcommand: String): List<String> {
-        return when (subcommand.lowercase()) {
-            "check" -> if (sender.hasPermission("deathban.check.others")) {
-                getOnlinePlayerNames()
-            } else emptyList()
+    private fun getSecondArg(
+        sender: CommandSender,
+        subcommand: String,
+    ): List<String> =
+        when (subcommand.lowercase()) {
+            "check" ->
+                if (sender.hasPermission("deathban.check.others")) {
+                    getOnlinePlayerNames()
+                } else {
+                    emptyList()
+                }
 
-            "reset" -> if (sender.hasPermission("deathban.admin")) {
-                getOnlinePlayerNames() + getStoredPlayerNames()
-            } else emptyList()
+            "reset" ->
+                if (sender.hasPermission("deathban.admin")) {
+                    getOnlinePlayerNames() + getStoredPlayerNames()
+                } else {
+                    emptyList()
+                }
 
-            "pardon" -> if (sender.hasPermission("deathban.admin")) {
-                getBannedPlayerNames()
-            } else emptyList()
+            "pardon" ->
+                if (sender.hasPermission("deathban.admin")) {
+                    getBannedPlayerNames()
+                } else {
+                    emptyList()
+                }
 
             "lives" -> listOf("add", "set")
 
             "team" -> listOf("create", "join", "leave")
 
-            "theme" -> buildList {
-                add("list")
-                if (sender.hasPermission("deathban.admin")) add("set")
-                add("preview")
-            }
+            "theme" ->
+                buildList {
+                    add("list")
+                    if (sender.hasPermission("deathban.admin")) add("set")
+                    add("preview")
+                }
 
             else -> emptyList()
         }
-    }
 
     @Suppress("UNUSED_PARAMETER")
-    fun getThirdArg(sender: CommandSender, subcommand: String, secondArg: String): List<String> {
-        return when (subcommand.lowercase()) {
-            "theme" -> when (secondArg.lowercase()) {
-                "set", "preview" -> plugin.themeManager.getAvailableThemeIds()
-                else -> emptyList()
-            }
+    fun getThirdArg(
+        sender: CommandSender,
+        subcommand: String,
+        secondArg: String,
+    ): List<String> =
+        when (subcommand.lowercase()) {
+            "theme" ->
+                when (secondArg.lowercase()) {
+                    "set", "preview" -> plugin.themeManager.getAvailableThemeIds()
+                    else -> emptyList()
+                }
             else -> emptyList()
         }
-    }
 
-    private fun getOnlinePlayerNames(): List<String> =
-        Bukkit.getOnlinePlayers().map { it.name }
+    private fun getOnlinePlayerNames(): List<String> = Bukkit.getOnlinePlayers().map { it.name }
 
     private fun getStoredPlayerNames(): List<String> =
-        dataManager.getAllStoredPlayers()
+        dataManager
+            .getAllStoredPlayers()
             .mapNotNull { Bukkit.getOfflinePlayer(it).name }
             .filter { name -> Bukkit.getPlayer(name) == null }
 
     private fun getBannedPlayerNames(): List<String> =
-        banManager.getActiveBans()
+        banManager
+            .getActiveBans()
             .mapNotNull { Bukkit.getOfflinePlayer(it).name }
 
-    private fun filterStartsWith(options: List<String>, prefix: String): List<String> =
-        options.filter { it.lowercase().startsWith(prefix.lowercase()) }
+    private fun filterStartsWith(
+        options: List<String>,
+        prefix: String,
+    ): List<String> = options.filter { it.lowercase().startsWith(prefix.lowercase()) }
 }

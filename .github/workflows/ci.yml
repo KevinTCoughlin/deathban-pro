@@ -64,5 +64,5 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Check Kotlin compilation
-        run: ./gradlew compileKotlin --no-daemon
+      - name: Run ktlint
+        run: ./gradlew ktlintCheck --no-daemon

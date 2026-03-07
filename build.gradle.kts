@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm") version "2.3.10"
     id("com.gradleup.shadow") version "9.3.2"
+    id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
 }
 
 group = "dev.coughlin"
@@ -16,6 +17,7 @@ dependencies {
     compileOnly("org.spigotmc:spigot-api:1.21.11-R0.2-SNAPSHOT")
     implementation("org.bstats:bstats-bukkit:3.2.1")
 
+    testImplementation("org.spigotmc:spigot-api:1.21.11-R0.2-SNAPSHOT")
     testImplementation("org.junit.jupiter:junit-jupiter:6.0.3")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("io.mockk:mockk:1.14.9")
