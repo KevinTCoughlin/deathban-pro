@@ -24,7 +24,9 @@
       }
     }
   },
-  "postCreateCommand": "./gradlew build --no-daemon",
+  "onCreateCommand": "./gradlew dependencies --no-daemon",
+  "updateContentCommand": "./gradlew classes --no-daemon",
+  "postCreateCommand": "echo 'Workspace ready!'",
   "remoteUser": "vscode",
   "forwardPorts": [25565],
   "portsAttributes": {
