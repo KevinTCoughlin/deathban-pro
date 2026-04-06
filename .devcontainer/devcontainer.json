@@ -21,7 +21,7 @@
       }
     }
   },
-  "onCreateCommand": "./gradlew dependencies --no-daemon",
+  "onCreateCommand": "./gradlew dependencies --no-daemon --console=plain",
   "updateContentCommand": "./gradlew classes --no-daemon",
   "postCreateCommand": "echo 'Workspace ready!'",
   "remoteUser": "vscode",
