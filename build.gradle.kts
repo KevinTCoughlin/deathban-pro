@@ -14,10 +14,10 @@ repositories {
 }
 
 dependencies {
-    compileOnly("org.spigotmc:spigot-api:1.21.11-R0.2-SNAPSHOT")
+    compileOnly("org.spigotmc:spigot-api:26.1.1-R0.1-SNAPSHOT")
     implementation("org.bstats:bstats-bukkit:3.2.1")
 
-    testImplementation("org.spigotmc:spigot-api:1.21.11-R0.2-SNAPSHOT")
+    testImplementation("org.spigotmc:spigot-api:26.1.1-R0.1-SNAPSHOT")
     testImplementation("org.junit.jupiter:junit-jupiter:6.0.3")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("io.mockk:mockk:1.14.9")
