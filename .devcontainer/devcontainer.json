@@ -3,8 +3,8 @@
   "image": "mcr.microsoft.com/devcontainers/java:1-21-bookworm",
   "features": {
     "ghcr.io/devcontainers/features/java:1": {
-      "version": "25",
-      "jdkDistro": "temurin",
+      "version": "21",
+      "jdkDistro": "tem",
       "installGradle": "true",
       "gradleVersion": "9.3.1"
     }
