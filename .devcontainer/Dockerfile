@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/devcontainers/java:25-noble
 
 # Install Gradle
-ARG GRADLE_VERSION=9.3.1
+ARG GRADLE_VERSION=9.5.0
 RUN curl -fsSL https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip -o /tmp/gradle.zip \
     && unzip -d /opt /tmp/gradle.zip \
     && rm /tmp/gradle.zip \
