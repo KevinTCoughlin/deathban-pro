@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "2.3.21"
     id("com.gradleup.shadow") version "9.4.1"
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
+    jacoco
 }
 
 group = "dev.coughlin"
@@ -21,6 +22,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:6.0.3")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("io.mockk:mockk:1.14.9")
+    testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")
 }
 
 tasks {
@@ -68,6 +70,137 @@ tasks {
 
     test {
         useJUnitPlatform()
+    }
+
+    // Build metadata task
+    register("buildMetadata") {
+        description = "Capture build metadata"
+        doLast {
+            val buildDir = layout.buildDirectory.get().asFile
+            buildDir.mkdirs()
+
+            val timestamp = System.currentTimeMillis()
+            val gitSha =
+                try {
+                    ProcessBuilder("git", "rev-parse", "--short", "HEAD")
+                        .directory(rootProject.projectDir)
+                        .redirectError(ProcessBuilder.Redirect.DISCARD)
+                        .start()
+                        .inputStream
+                        .bufferedReader()
+                        .readText()
+                        .trim()
+                } catch (e: Exception) {
+                    "unknown"
+                }
+
+            val metadata =
+                """
+                Build-Time: $timestamp
+                Git-SHA: $gitSha
+                Version: $version
+                """.trimIndent()
+
+            file("$buildDir/build-metadata.txt").writeText(metadata)
+            println("Build metadata captured:")
+            println(metadata)
+        }
+    }
+
+    // Test summary report task
+    register("testSummary") {
+        description = "Generate test summary report"
+        dependsOn("test")
+        doLast {
+            val resultsDir =
+                layout
+                    .buildDirectory
+                    .get()
+                    .asFile
+                    .resolve("test-results/test")
+            val reportDir =
+                layout
+                    .buildDirectory
+                    .get()
+                    .asFile
+                    .resolve("test-reports")
+            reportDir.mkdirs()
+
+            if (resultsDir.exists()) {
+                val xmlFiles =
+                    resultsDir.listFiles { file ->
+                        file.isFile && file.extension == "xml"
+                    } ?: emptyArray()
+
+                var totalTests = 0
+                var totalPassed = 0
+                var totalFailed = 0
+                var totalSkipped = 0
+
+                xmlFiles.forEach { xmlFile ->
+                    val content = xmlFile.readText()
+                    val testCount =
+                        "tests=\"(\\d+)\""
+                            .toRegex()
+                            .find(content)
+                            ?.groupValues
+                            ?.get(1)
+                            ?.toIntOrNull() ?: 0
+                    val failureCount =
+                        "failures=\"(\\d+)\""
+                            .toRegex()
+                            .find(content)
+                            ?.groupValues
+                            ?.get(1)
+                            ?.toIntOrNull() ?: 0
+                    val skippedCount =
+                        "skipped=\"(\\d+)\""
+                            .toRegex()
+                            .find(content)
+                            ?.groupValues
+                            ?.get(1)
+                            ?.toIntOrNull() ?: 0
+
+                    totalTests += testCount
+                    totalFailed += failureCount
+                    totalSkipped += skippedCount
+                    totalPassed += (testCount - failureCount - skippedCount)
+                }
+
+                val summary =
+                    """
+                    ================== TEST SUMMARY ==================
+                    Total Tests:  $totalTests
+                    Passed:       $totalPassed
+                    Failed:       $totalFailed
+                    Skipped:      $totalSkipped
+                    ==================================================
+                    """.trimIndent()
+
+                println(summary)
+                reportDir.resolve("test-summary.txt").writeText(summary)
+            }
+        }
+    }
+
+    // Gradle wrapper verification
+    wrapper {
+        version = "9.5.0"
+        distributionType = Wrapper.DistributionType.ALL
+        validateDistributionUrl = true
+    }
+
+    // Add metadata to shadowJar manifest
+    register<Jar>("jarWithMetadata") {
+        description = "Create JAR with build metadata"
+        dependsOn("buildMetadata")
+        from(
+            layout
+                .buildDirectory
+                .get()
+                .asFile
+                .resolve("build-metadata.txt"),
+        )
     }
 }
 

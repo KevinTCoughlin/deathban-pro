@@ -1,0 +1,14 @@
+# Detekt configuration for DeathBan Pro
+# Extends the default Detekt rules
+
+naming:
+  active: true
+
+performance:
+  active: true
+
+potential-bugs:
+  active: true
+
+style:
+  active: true

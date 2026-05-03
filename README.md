@@ -1,6 +1,7 @@
 # DeathBan Pro
 
 [![CI](https://github.com/KevinTCoughlin/deathban-pro/actions/workflows/ci.yml/badge.svg)](https://github.com/KevinTCoughlin/deathban-pro/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/KevinTCoughlin/deathban-pro/branch/main/graph/badge.svg)](https://codecov.io/gh/KevinTCoughlin/deathban-pro)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.21%2B-brightgreen)](https://www.minecraft.net/)
 [![Java](https://img.shields.io/badge/Java-25%2B-orange)](https://adoptium.net/)
@@ -113,6 +114,14 @@ DeathBan Pro includes a theme system for customizing the visual and audio experi
 
 Create custom themes by implementing the `Theme` interface and packaging as a JAR. Place theme JARs in `plugins/DeathBanPro/themes/`.
 
+## Documentation
+
+- **[API Reference](docs/API_REFERENCE.md)** - Complete API documentation with code examples for DeathListener, BanManager, OffenseManager, PlayerDataManager, and SharedLivesManager
+- **[Architecture Guide](docs/ARCHITECTURE.md)** - System design, component interactions, data flows, and concurrency model
+- **[Development Guide](docs/DEVELOPMENT_GUIDE.md)** - Building from source, running tests, IDE setup, and extending the plugin
+- **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)** - Common issues, debug logging, performance tuning, and data recovery
+- **[Configuration Examples](docs/CONFIGURATION_EXAMPLES.md)** - Real-world examples for hardcore mode, survival, PvP, teams, events, and multi-world setups
+
 ## Building
 
 ```bash
@@ -121,9 +130,15 @@ Create custom themes by implementing the `Theme` interface and packaging as a JA
 
 The built JAR will be in `build/libs/`.
 
+See the [Development Guide](docs/DEVELOPMENT_GUIDE.md) for detailed build instructions and troubleshooting.
+
 ## Development
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines, or check the [Development Guide](docs/DEVELOPMENT_GUIDE.md) for comprehensive information on:
+- Building and testing
+- IDE setup (IntelliJ, VS Code)
+- Adding new features
+- Code conventions
 
 ## Changelog
 
