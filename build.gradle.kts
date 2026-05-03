@@ -205,5 +205,5 @@ tasks {
 }
 
 kotlin {
-    jvmToolchain(25)
+    jvmToolchain(21)
 }
