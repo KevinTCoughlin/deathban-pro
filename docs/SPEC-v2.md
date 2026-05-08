@@ -881,11 +881,13 @@ class BanManagerTest {
 ### Dual License Model
 
 **Base Plugin (DeathBan Pro)**: MIT License
+
 - Free to use, modify, redistribute
 - Source available on GitHub
 - Commercial use allowed
 
 **Premium Themes**: Proprietary
+
 - Single server license per purchase
 - No redistribution
 - Updates included

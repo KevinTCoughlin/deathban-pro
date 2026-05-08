@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+
 - **reload() not propagating Settings** — Managers and listeners are now rebuilt on reload so config changes take effect immediately
 - **Thread-unsafe async saves in PlayerDataManager** — Player data is now snapshotted before async disk writes to prevent ConcurrentModificationException
 - **Thread-unsafe async saves in SharedLivesManager** — Pool data is now snapshotted into immutable records before async serialization
@@ -22,10 +23,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Contribution UUID parsing crash** — SharedLivesManager now uses runCatching for contribution UUID parsing, consistent with member parsing
 
 ### Changed
+
 - Updated plugin.yml usage to include all subcommands (lives, team, theme)
 - Added security warning for external theme JARs in Theme interface docs and README
 
 ### Technical
+
 - Kotlin 2.3.21 with Java 21 target
 - Spigot API 1.21+ compatibility
 - 131+ unit tests covering core logic
@@ -33,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0-beta.1] - 2025-01-25
 
 ### Added
+
 - **Theme System**
   - Extensible theme interface for customizing visuals and audio
   - Built-in `default` theme with standard red/gray styling
@@ -64,6 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Comprehensive documentation
 
 ### Technical
+
 - Kotlin 2.3.21 with Java 21 target
 - Spigot API 1.21+ compatibility
 - Shadow JAR with relocated bStats
@@ -72,6 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.0-alpha.1] - 2025-01-25
 
 ### Added
+
 - Theme system with DefaultTheme and HalloweenTheme
 - Theme commands and tab completion
 - Sound and particle effects integration
@@ -79,6 +85,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0-alpha.1] - 2025-01-25
 
 ### Added
+
 - Shared lives mode with global and team pools
 - Life management commands
 - SharedLivesPool persistence
@@ -86,15 +93,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0-alpha.2] - 2025-01-25
 
 ### Added
+
 - Unit test suite (TimeUtil, OffenseManager, PlayerData, SharedLivesPool)
 - OffenseConfig interface for testability
 
 ### Fixed
+
 - Shadow plugin compatibility with Java 21
 
 ## [1.0.0-alpha.1] - 2025-01-25
 
 ### Added
+
 - Initial implementation
 - Individual ban mode with rolling window
 - Basic commands (check, reset, pardon, reload)

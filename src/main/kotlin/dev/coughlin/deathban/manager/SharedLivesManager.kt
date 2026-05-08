@@ -87,12 +87,10 @@ class SharedLivesManager(
     }
 
     fun leavePool(uuid: UUID): Boolean {
-        var left = false
-        pools.values.forEach { pool ->
-            if (pool.removeMember(uuid)) {
-                left = true
+        val left =
+            pools.values.fold(false) { removed, pool ->
+                pool.removeMember(uuid) || removed
             }
-        }
         if (left) saveAsync()
         return left
     }

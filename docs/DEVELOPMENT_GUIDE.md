@@ -100,10 +100,13 @@ cp build/libs/DeathBanPro-*.jar ~/server/plugins/
 ### Troubleshooting Builds
 
 **Problem: Java version error**
+
 ```
 Caused by: java.lang.UnsupportedClassVersionError
 ```
+
 **Solution:** Upgrade to Java 21+ or 25+
+
 ```bash
 # Check which Java Gradle is using
 ./gradlew --version
@@ -113,10 +116,13 @@ export JAVA_HOME=/path/to/java21
 ```
 
 **Problem: Out of memory**
+
 ```
 java.lang.OutOfMemoryError: Java heap space
 ```
+
 **Solution:** Increase Gradle memory
+
 ```bash
 # Create gradle.properties or add to existing:
 echo "org.gradle.jvmargs=-Xmx2g" >> gradle.properties
@@ -124,10 +130,13 @@ echo "org.gradle.jvmargs=-Xmx2g" >> gradle.properties
 ```
 
 **Problem: "Cannot find symbol" errors**
+
 ```
 error: unresolved reference: BanRecord
 ```
+
 **Solution:** Regenerate project
+
 ```bash
 ./gradlew clean
 ./gradlew build
@@ -191,6 +200,7 @@ src/test/kotlin/
 ### Test Failures
 
 **Check test output:**
+
 ```bash
 ./gradlew test --info 2>&1 | tail -50
 ```
@@ -198,18 +208,21 @@ src/test/kotlin/
 **Common Issues:**
 
 1. **Database/File Issues**: Tests expect clean state
+
    ```bash
    # Clean and retry
    ./gradlew cleanTest test
    ```
 
 2. **Port Conflicts**: Another server running
+
    ```bash
    # Kill process using port (if applicable)
    lsof -i :25565
    ```
 
 3. **Timeout**: Test takes too long
+
    ```bash
    # Increase timeout in build.gradle.kts:
    test {
@@ -245,6 +258,7 @@ src/test/kotlin/
 #### Run Configurations
 
 Create run config for testing:
+
 1. **Run → Edit Configurations**
 2. **+ → Gradle**
 3. **Name**: `Run Tests`
@@ -831,7 +845,7 @@ git push origin feature/add-new-command
 
 ### Create Pull Request
 
-1. **Go to GitHub**: https://github.com/YOUR_USERNAME/deathban-pro
+1. **Go to GitHub**: <https://github.com/YOUR_USERNAME/deathban-pro>
 2. **Click "Compare & pull request"**
 3. **Fill PR template:**
    - Title: Concise description

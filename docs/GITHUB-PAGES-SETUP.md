@@ -49,6 +49,7 @@ Once GitHub Pages is enabled and the site is deployed:
 ## Deployment
 
 The landing page will be automatically deployed when:
+
 - Code is pushed to the `main` branch
 - The workflow is manually triggered from the Actions tab
 
@@ -75,21 +76,25 @@ npx http-server
 ## Site URL
 
 Once deployed, the site will be available at:
+
 - Default: `https://kevintcoughlin.github.io/deathban-pro/`
 - Custom domain: `https://your-custom-domain.com` (after DNS configuration)
 
 ## Troubleshooting
 
 ### Workflow fails with permission error
+
 - Check the workflow permissions in Settings → Actions → General
 - Ensure "pages: write" and "id-token: write" permissions are allowed
 
 ### Site shows 404
+
 - Ensure GitHub Pages is enabled in Settings → Pages
 - Check that the workflow completed successfully in the Actions tab
 - Wait a few minutes for DNS propagation
 
 ### Custom domain not working
+
 - Verify DNS records with `dig your-domain.com` or `nslookup your-domain.com`
 - DNS propagation can take up to 24-48 hours
 - Ensure the CNAME file was created in the repository root

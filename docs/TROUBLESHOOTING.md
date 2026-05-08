@@ -20,17 +20,21 @@ This guide covers common issues, debugging techniques, and solutions for DeathBa
 #### Diagnosis
 
 1. **Check if plugin is enabled**
+
    ```
    /plugins
    ```
+
    Should show: `[DeathBanPro]` (green = enabled, red = error)
 
 2. **Enable debug logging** (see [Debug Logging Setup](#debug-logging-setup))
 
 3. **Check player permissions**
+
    ```
    /lp user <player> permission info | grep deathban
    ```
+
    Should NOT have `deathban.bypass` permission
 
 4. **Verify world is enabled**
@@ -40,6 +44,7 @@ This guide covers common issues, debugging techniques, and solutions for DeathBa
 #### Solutions
 
 **Solution 1: Plugin not enabled**
+
 ```bash
 # Check console for errors
 # If "DeathBan Pro disabled", check error messages
@@ -48,6 +53,7 @@ This guide covers common issues, debugging techniques, and solutions for DeathBa
 ```
 
 **Solution 2: World disabled**
+
 ```yaml
 # In config.yml, either:
 
@@ -64,6 +70,7 @@ disabled-worlds:
 ```
 
 **Solution 3: Bypass permission active**
+
 ```bash
 # Remove bypass permission
 /lp user <player> permission unset deathban.bypass
@@ -73,6 +80,7 @@ disabled-worlds:
 ```
 
 **Solution 4: Rolling window threshold too high**
+
 ```yaml
 # config.yml - check:
 rolling-window:
@@ -94,12 +102,15 @@ rolling-window:
 #### Diagnosis
 
 1. **Check if player is actually banned**
+
    ```
    /deathban check <player>
    ```
+
    Should show ban expiration time
 
 2. **Check if ban is expired**
+
    ```
    Status: BANNED
    Ban expires in: [negative number] = EXPIRED
@@ -107,6 +118,7 @@ rolling-window:
    ```
 
 3. **Check player data file**
+
    ```bash
    # Browse: plugins/DeathBanPro/players/{uuid}.yml
    # Should contain:
@@ -117,8 +129,10 @@ rolling-window:
 #### Solutions
 
 **Solution 1: Ban is expired**
+
 - Expected behavior: expired bans don't prevent join
 - Ban duration may be set too short in config
+
 ```yaml
 ban-durations:
   1: 1h        # Too short? Increase:
@@ -126,6 +140,7 @@ ban-durations:
 ```
 
 **Solution 2: Data file corrupted**
+
 ```bash
 # Check file format
 cat plugins/DeathBanPro/players/{uuid}.yml
@@ -136,6 +151,7 @@ rm plugins/DeathBanPro/players/{uuid}.yml
 ```
 
 **Solution 3: Late kick (10-30 seconds delay)**
+
 - This is normal (by design)
 - Ban applied at death, kick delayed 60 ticks (3 seconds)
 - Plus server latency
@@ -148,24 +164,29 @@ rm plugins/DeathBanPro/players/{uuid}.yml
 #### Diagnosis
 
 1. **Check if data folder exists**
+
    ```bash
    ls -la plugins/DeathBanPro/
    ```
+
    Should show: `players/` and `shared-lives/` directories
 
 2. **Check file permissions**
+
    ```bash
    ls -la plugins/DeathBanPro/players/
    # Should be writable by server user
    ```
 
 3. **Check disk space**
+
    ```bash
    df -h
    # Should have >100MB free
    ```
 
 4. **Check for write errors in logs**
+
    ```bash
    tail -50 logs/latest.log | grep -i "deathban\|error\|write"
    ```
@@ -173,6 +194,7 @@ rm plugins/DeathBanPro/players/{uuid}.yml
 #### Solutions
 
 **Solution 1: Directory doesn't exist**
+
 ```bash
 # Create directory
 mkdir -p plugins/DeathBanPro/players
@@ -187,6 +209,7 @@ chmod 755 plugins/DeathBanPro/shared-lives
 ```
 
 **Solution 2: Permissions issue**
+
 ```bash
 # Ensure server user can write
 chown -R minecraft:minecraft plugins/DeathBanPro
@@ -197,6 +220,7 @@ chmod -R 777 plugins/DeathBanPro
 ```
 
 **Solution 3: Out of disk space**
+
 ```bash
 # Check available space
 df -h
@@ -208,8 +232,10 @@ df -h
 ```
 
 **Solution 4: Server crash during write**
+
 - Some data loss possible if server hard-crashed
 - Check for pending bans:
+
 ```bash
 # On restart, server auto-processes pending bans
 # Check logs: "Processing X pending bans"
@@ -222,6 +248,7 @@ df -h
 #### Diagnosis
 
 1. **Check config file syntax**
+
    ```bash
    # Validate YAML
    yaml-lint plugins/DeathBanPro/config.yml
@@ -231,6 +258,7 @@ df -h
    ```
 
 2. **Check for typos in keys**
+
    ```yaml
    # Common typos:
    mode: individual        # Wrong: should be "shared"
@@ -243,6 +271,7 @@ df -h
    ```
 
 3. **Check that reload command works**
+
    ```
    /deathban reload
    # Should output: "DeathBan Pro reloaded"
@@ -252,6 +281,7 @@ df -h
 #### Solutions
 
 **Solution 1: YAML syntax error**
+
 - Copy config.yml from git repo (fresh copy)
 - Or use YAML validator to find syntax errors
 - Common errors:
@@ -260,6 +290,7 @@ df -h
   - Improper list formatting
 
 **Solution 2: Typo in config key**
+
 ```bash
 # Verify all keys are correct:
 grep -n "rolling-window:" plugins/DeathBanPro/config.yml
@@ -268,6 +299,7 @@ grep -n "rolling_window:" plugins/DeathBanPro/config.yml
 ```
 
 **Solution 3: Value type mismatch**
+
 ```yaml
 # Wrong types:
 mode: shared              # OK
@@ -282,6 +314,7 @@ duration: 24h             # String (duration parser)
 ```
 
 **Solution 4: Reload command permission**
+
 ```bash
 # Must have permission:
 /lp user <player> permission set deathban.admin
@@ -351,6 +384,7 @@ grep "Steve" logs/latest.log | head -20
 ### Enable DEBUG Logs in Different Ways
 
 **Temporary (until server restart):**
+
 ```
 /deathban reload
 # Edit config.yml to debug: true
@@ -359,6 +393,7 @@ grep "Steve" logs/latest.log | head -20
 ```
 
 **Permanent (persists after restart):**
+
 ```bash
 # Edit config.yml
 vim plugins/DeathBanPro/config.yml
@@ -367,6 +402,7 @@ vim plugins/DeathBanPro/config.yml
 ```
 
 **Via Bukkit logging:**
+
 ```
 # In server.properties:
 # No direct way, but you can:
@@ -382,6 +418,7 @@ grep "deathban\|DeathBan\|DEBUG" logs/latest.log
 **Issue:** Server lags when many players online
 
 **Investigation:**
+
 ```bash
 # Check async tasks
 /timings report
@@ -393,6 +430,7 @@ grep "deathban\|DeathBan\|DEBUG" logs/latest.log
 **Solutions:**
 
 1. **Reduce data sync frequency**
+
    ```yaml
    # In config.yml - no direct setting, but defaults are optimized
    # Data syncs only on:
@@ -402,16 +440,19 @@ grep "deathban\|DeathBan\|DEBUG" logs/latest.log
    ```
 
 2. **Disable metrics (minor improvement)**
+
    ```yaml
    metrics: false
    ```
 
 3. **Disable update checking**
+
    ```yaml
    update-check: false
    ```
 
 4. **Profile with debug logs**
+
    ```yaml
    debug: true  # Adds overhead, use temporarily only
    ```
@@ -421,6 +462,7 @@ grep "deathban\|DeathBan\|DEBUG" logs/latest.log
 **Issue:** Server memory usage grows over time
 
 **Investigation:**
+
 ```bash
 # Check cache size
 # DeathBan caches PlayerData in memory
@@ -434,9 +476,11 @@ grep "deathban\|DeathBan\|DEBUG" logs/latest.log
 **Solutions:**
 
 1. **Clear cache on reload**
+
    ```
    /deathban reload
    ```
+
    This clears all cached PlayerData (reloaded on next access)
 
 2. **Restart server** (nuclear option)
@@ -540,6 +584,7 @@ cat plugins/DeathBanPro/players/550e8400-e29b-41d4-a716-446655440000.yml
 ```
 
 Example output:
+
 ```yaml
 uuid: 550e8400-e29b-41d4-a716-446655440000
 offenseLevel: 2
@@ -565,6 +610,7 @@ lastDeathTime: 2024-01-15T14:30:00Z
 ### Test Ban Application
 
 1. **Setup test world**
+
    ```yaml
    enabled-worlds:
      - test-world
@@ -573,12 +619,14 @@ lastDeathTime: 2024-01-15T14:30:00Z
 2. **Create test player** (or use yourself)
 
 3. **Trigger deaths**
+
    ```
    # In Creative mode, switch to Survival
    # Or use: /kill @s (as player)
    ```
 
 4. **Verify ban**
+
    ```
    /deathban check <player>
    # Should show: BANNED until [time]
@@ -592,6 +640,7 @@ lastDeathTime: 2024-01-15T14:30:00Z
 ### Test Shared Mode
 
 1. **Enable shared mode**
+
    ```yaml
    mode: shared
    
@@ -602,17 +651,20 @@ lastDeathTime: 2024-01-15T14:30:00Z
    ```
 
 2. **Reload**
+
    ```
    /deathban reload
    ```
 
 3. **Check pool**
+
    ```
    /deathban lives
    # Should show: Server lives: 3/10
    ```
 
 4. **Test consuming lives**
+
    ```
    /kill @s  # Die as player
    # Should show: Life consumed! 2/10 remaining
@@ -627,16 +679,19 @@ lastDeathTime: 2024-01-15T14:30:00Z
 ### Test Team Pools
 
 1. **Create team**
+
    ```
    /deathban team create "Team Alpha"
    ```
 
 2. **Join team**
+
    ```
    /deathban team join "Team Alpha"
    ```
 
 3. **Test team pool**
+
    ```
    /deathban lives
    # Should show team pool status
@@ -645,6 +700,7 @@ lastDeathTime: 2024-01-15T14:30:00Z
 ### Test Offset Reset
 
 1. **Configure reset period** (set low for testing)
+
    ```yaml
    offense-reset:
      enabled: true
@@ -658,6 +714,7 @@ lastDeathTime: 2024-01-15T14:30:00Z
 3. **Wait 1+ minute**
 
 4. **Die again (verify reset)**
+
    ```
    # If reset worked:
    /deathban check <player>
@@ -669,6 +726,7 @@ lastDeathTime: 2024-01-15T14:30:00Z
 ### Q: How do I set different ban durations for different worlds?
 
 **A:** Currently not supported per-world. All worlds use same durations. Workaround:
+
 - Use enabled-worlds to disable in certain worlds
 - Combine with `deathban.bypass` permission for specific worlds
 
@@ -678,7 +736,8 @@ lastDeathTime: 2024-01-15T14:30:00Z
 
 ### Q: How do I backup before major config changes?
 
-**A:** 
+**A:**
+
 ```bash
 # Backup data
 cp -r plugins/DeathBanPro plugins/DeathBanPro.backup-$(date +%s)
@@ -700,6 +759,7 @@ cp -r plugins/DeathBanPro plugins/DeathBanPro.backup-$(date +%s)
 ### Q: How do I see who was banned and when?
 
 **A:** Check logs for ban messages, or use `/deathban check <player>`:
+
 ```
 Status: BANNED
 Offense level: 2
@@ -709,6 +769,7 @@ Ban expires at: 2024-01-15T20:30:00Z
 ### Q: Rolling window not working - all deaths count?
 
 **A:** Check config:
+
 ```yaml
 rolling-window:
   enabled: true      # Must be true
@@ -721,6 +782,7 @@ If still not working, check logs for "rolling window" messages with debug enable
 ### Q: How do I test without getting actually banned?
 
 **A:** Use test world with `deathban.bypass`:
+
 ```yaml
 enabled-worlds:
   - testing-world

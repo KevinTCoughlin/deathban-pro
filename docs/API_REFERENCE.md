@@ -41,6 +41,7 @@ The `DeathListener` processes all player death events. Internally it uses these 
 ### Hook Points
 
 While DeathListener doesn't expose direct hooks, you can:
+
 - Check player ban status via `BanManager.getActiveBans()`
 - Monitor player data via `PlayerDataManager.get(uuid)`
 - Listen to events through the managers' public state
@@ -74,11 +75,13 @@ The `BanManager` handles ban application, pardon, and reset operations.
 Applies an individual ban to a player with escalating duration.
 
 **Parameters:**
+
 - `player` - The player to ban
 - `data` - PlayerData with current offense level
 - `deathCause` - The damage cause (e.g., "FALL", "LAVA")
 
 **Side Effects:**
+
 - Sets `data.currentBan` with calculated duration
 - Saves player data asynchronously
 - Shows title and plays sound/particles based on theme
@@ -86,6 +89,7 @@ Applies an individual ban to a player with escalating duration.
 - Increments total bans counter
 
 **Example:**
+
 ```kotlin
 val plugin = Bukkit.getPluginManager().getPlugin("DeathBanPro") as DeathBanPlugin
 val player = Bukkit.getPlayer("Steve")
@@ -99,15 +103,18 @@ plugin.banManager.applyBan(player, data, "FALL")
 Applies a ban in shared mode when the pool is empty.
 
 **Parameters:**
+
 - `player` - The player to ban
 - `deathCause` - The damage cause
 
 **Side Effects:**
+
 - Creates BanRecord with `sharedLivesEmptyPoolBan` duration
 - Shows theme effects and messages
 - Kicks player after respawn
 
 **Example:**
+
 ```kotlin
 if (settings.mode == BanMode.SHARED && !plugin.sharedLivesManager!!.consumeLife(uuid)) {
     plugin.banManager.applySharedBan(player, "DROWNING")
@@ -121,11 +128,13 @@ Removes an active ban for a player.
 **Returns:** `true` if pardon successful, `false` if player not found or not banned
 
 **Side Effects:**
+
 - Clears `currentBan` from PlayerData
 - Sets `pendingPardon` flag if player offline
 - Saves player data asynchronously
 
 **Example:**
+
 ```kotlin
 if (plugin.banManager.pardon(uuid)) {
     Bukkit.getLogger().info("Player pardoned")
@@ -141,12 +150,14 @@ Completely resets a player's death record and offense level.
 **Returns:** `true` if reset successful, `false` if player not found
 
 **Side Effects:**
+
 - Sets offense level to 0
 - Clears all death records
 - Removes active ban
 - Clears pending pardon flag
 
 **Example:**
+
 ```kotlin
 plugin.banManager.reset(uuid) // Clean slate for player
 ```
@@ -158,6 +169,7 @@ Gets list of UUIDs currently banned.
 **Returns:** List of UUIDs with active bans
 
 **Example:**
+
 ```kotlin
 val bannedPlayers = plugin.banManager.getActiveBans()
 for (uuid in bannedPlayers) {
@@ -173,6 +185,7 @@ Gets total number of bans issued since plugin load.
 **Returns:** Integer count
 
 **Example:**
+
 ```kotlin
 val stats = plugin.banManager.getTotalBansIssued()
 println("Total bans this session: $stats")
@@ -189,11 +202,13 @@ The `OffenseManager` tracks deaths within the rolling window and manages offense
 Gets count of deaths within the rolling window period.
 
 **Parameters:**
+
 - `data` - PlayerData to check
 
 **Returns:** Number of deaths in window (or all deaths if rolling window disabled)
 
 **Example:**
+
 ```kotlin
 val data = plugin.dataManager.get(uuid)
 val recentDeaths = plugin.offenseManager.getDeathsInWindow(data)
@@ -205,16 +220,19 @@ println("Deaths in 24h window: $recentDeaths")
 Checks if a player should be banned based on deaths in window.
 
 **Parameters:**
+
 - `data` - PlayerData to check
 
 **Returns:** `true` if deaths >= `max-deaths` threshold
 
 **Logic:**
+
 - If rolling window disabled: all deaths count
 - If enabled: only deaths within `rolling-window.duration` count
 - Compare against `rolling-window.max-deaths`
 
 **Example:**
+
 ```kotlin
 if (plugin.offenseManager.shouldTriggerBan(data)) {
     plugin.banManager.applyBan(player, data, "FALL")
@@ -226,15 +244,18 @@ if (plugin.offenseManager.shouldTriggerBan(data)) {
 Checks if player qualifies for offense reset after clean period.
 
 **Parameters:**
+
 - `data` - PlayerData to check
 
 **Returns:** `true` if reset was applied, `false` otherwise
 
 **Side Effects:** (if returns true)
+
 - Sets offense level to 0
 - Clears death records
 
 **Example:**
+
 ```kotlin
 if (plugin.offenseManager.checkOffenseReset(data)) {
     player.sendMessage(Component.text("Your record has been cleaned!").color(NamedTextColor.GREEN))
@@ -246,11 +267,13 @@ if (plugin.offenseManager.checkOffenseReset(data)) {
 Removes deaths outside rolling window from the record.
 
 **Parameters:**
+
 - `data` - PlayerData to prune
 
 **Side Effects:** Modifies death list in place
 
 **Example:**
+
 ```kotlin
 plugin.offenseManager.pruneOldDeaths(data)
 plugin.dataManager.saveAsync(data)
@@ -261,6 +284,7 @@ plugin.dataManager.saveAsync(data)
 Calculates remaining deaths before next ban.
 
 **Parameters:**
+
 - `data` - PlayerData to check
 
 **Returns:** Remaining lives (0 or more)
@@ -268,6 +292,7 @@ Calculates remaining deaths before next ban.
 **Formula:** `max-deaths - deaths-in-window`
 
 **Example:**
+
 ```kotlin
 val remaining = plugin.offenseManager.getRemainingLives(data)
 player.sendMessage(Component.text("Lives remaining: $remaining"))
@@ -284,6 +309,7 @@ The `PlayerDataManager` handles persistent storage of player death records and b
 Retrieves cached PlayerData or null if not found.
 
 **Parameters:**
+
 - `uuid` - Player UUID
 
 **Returns:** PlayerData or null
@@ -291,6 +317,7 @@ Retrieves cached PlayerData or null if not found.
 **Note:** This is cached - data is loaded from disk on demand
 
 **Example:**
+
 ```kotlin
 val data = plugin.dataManager.get(uuid) ?: return
 println("Offense level: ${data.offenseLevel}")
@@ -301,15 +328,18 @@ println("Offense level: ${data.offenseLevel}")
 Gets PlayerData or creates empty record if doesn't exist.
 
 **Parameters:**
+
 - `uuid` - Player UUID
 
 **Returns:** PlayerData (never null)
 
-**Side Effects:** 
+**Side Effects:**
+
 - Creates new PlayerData if needed
 - Does NOT save to disk (save with `saveAsync` or `save`)
 
 **Example:**
+
 ```kotlin
 val data = plugin.dataManager.getOrCreate(uuid)
 data.offenseLevel++
@@ -321,15 +351,18 @@ plugin.dataManager.saveAsync(data)
 Synchronously saves PlayerData to disk.
 
 **Parameters:**
+
 - `data` - PlayerData to save
 
 **Side Effects:**
+
 - Writes YAML file to `plugins/DeathBanPro/players/`
 - Blocks until I/O complete
 
 **Note:** Prefer `saveAsync` for non-blocking saves
 
 **Example:**
+
 ```kotlin
 data.offenseLevel = 0
 plugin.dataManager.save(data) // Blocks
@@ -340,13 +373,16 @@ plugin.dataManager.save(data) // Blocks
 Asynchronously saves PlayerData to disk (non-blocking).
 
 **Parameters:**
+
 - `data` - PlayerData to save
 
 **Side Effects:**
+
 - Queues async write to disk
 - Returns immediately
 
 **Example:**
+
 ```kotlin
 data.offenseLevel++
 plugin.dataManager.saveAsync(data) // Returns immediately
@@ -357,6 +393,7 @@ plugin.dataManager.saveAsync(data) // Returns immediately
 Saves all dirty PlayerData to disk (used on shutdown).
 
 **Example:**
+
 ```kotlin
 plugin.dataManager.saveAll() // Flush all changes
 ```
@@ -366,9 +403,11 @@ plugin.dataManager.saveAll() // Flush all changes
 Clears all cached player data from memory.
 
 **Side Effects:**
+
 - Next access will reload from disk
 
 **Example:**
+
 ```kotlin
 plugin.dataManager.clearCache() // After manual file edits
 ```
@@ -380,6 +419,7 @@ Gets UUIDs of all currently banned players.
 **Returns:** List of UUIDs with active bans
 
 **Example:**
+
 ```kotlin
 val banned = plugin.dataManager.getActiveBans()
 for (uuid in banned) {
@@ -394,9 +434,11 @@ for (uuid in banned) {
 Marks a UUID for banning on next join (crash recovery).
 
 **Parameters:**
+
 - `uuid` - Player UUID
 
 **Example:**
+
 ```kotlin
 plugin.dataManager.addPendingBan(uuid)
 ```
@@ -408,6 +450,7 @@ Gets set of UUIDs with pending bans.
 **Returns:** Set of UUIDs
 
 **Example:**
+
 ```kotlin
 val pending = plugin.dataManager.getPendingBans()
 ```
@@ -417,9 +460,11 @@ val pending = plugin.dataManager.getPendingBans()
 Clears pending ban flag for UUID.
 
 **Parameters:**
+
 - `uuid` - Player UUID
 
 **Example:**
+
 ```kotlin
 plugin.dataManager.removePendingBan(uuid)
 ```
@@ -429,6 +474,7 @@ plugin.dataManager.removePendingBan(uuid)
 The `SharedLivesManager` manages shared life pools in SHARED mode.
 
 **Availability:** Only available when `mode: shared` in config. Check with:
+
 ```kotlin
 if (plugin.sharedLivesManager != null) {
     // Shared mode enabled
@@ -444,6 +490,7 @@ Gets the global server life pool.
 **Returns:** SharedLivesPool with current lives and max lives
 
 **Example:**
+
 ```kotlin
 val pool = plugin.sharedLivesManager?.getGlobalPool()
 println("Server lives: ${pool?.lives}/${pool?.maxLives}")
@@ -454,11 +501,13 @@ println("Server lives: ${pool?.lives}/${pool?.maxLives}")
 Gets the player's team pool or null if in global pool.
 
 **Parameters:**
+
 - `uuid` - Player UUID
 
 **Returns:** Team SharedLivesPool or null (null means using global pool)
 
 **Example:**
+
 ```kotlin
 val pool = plugin.sharedLivesManager?.getPoolForPlayer(uuid)
 if (pool != null) {
@@ -473,15 +522,18 @@ if (pool != null) {
 Removes one life from player's pool (global or team).
 
 **Parameters:**
+
 - `uuid` - Player UUID
 
 **Returns:** `true` if life consumed, `false` if pool empty
 
 **Side Effects:**
+
 - Decrements pool lives
 - Saves pool state asynchronously
 
 **Example:**
+
 ```kotlin
 if (plugin.sharedLivesManager?.consumeLife(uuid) == true) {
     val pool = plugin.sharedLivesManager?.getPoolForPlayer(uuid) ?: 
@@ -495,11 +547,13 @@ if (plugin.sharedLivesManager?.consumeLife(uuid) == true) {
 Adds one life to player's pool (up to max).
 
 **Parameters:**
+
 - `uuid` - Player UUID
 
 **Returns:** `true` if life added, `false` if already at max
 
 **Example:**
+
 ```kotlin
 if (plugin.sharedLivesManager?.addLife(uuid) == true) {
     player.sendMessage("Life added!")
@@ -511,11 +565,13 @@ if (plugin.sharedLivesManager?.addLife(uuid) == true) {
 Sets exact number of lives in global pool (admin).
 
 **Parameters:**
+
 - `lives` - Number of lives to set
 
 **Returns:** `true` if set successfully
 
 **Example:**
+
 ```kotlin
 plugin.sharedLivesManager?.setLives(5)
 ```
@@ -525,6 +581,7 @@ plugin.sharedLivesManager?.setLives(5)
 Saves all pool states to disk.
 
 **Example:**
+
 ```kotlin
 plugin.sharedLivesManager?.saveAll()
 ```

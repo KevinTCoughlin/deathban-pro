@@ -430,6 +430,7 @@ Earn lives back:
 ### Configuration Variations
 
 **Hardcore Teams (3 lives total)**
+
 ```yaml
 shared-lives:
   default-lives: 3      # Only 3 lives for entire team
@@ -439,6 +440,7 @@ shared-lives:
 ```
 
 **Forgiving Teams (50 lives)**
+
 ```yaml
 shared-lives:
   default-lives: 50     # Very forgiving
@@ -473,6 +475,7 @@ ban-durations:
 **When:** Special event weekend
 
 **Change:**
+
 ```bash
 # SSH into server
 vi plugins/DeathBanPro/config.yml
@@ -600,6 +603,7 @@ ln -s config-hardcore.yml plugins/DeathBanPro/config-hardcore.yml
    - Get webhook URL (easiest) or bot token
 
 2. **Custom Plugin Integration**
+
    ```kotlin
    // Create a DeathBan listener that sends to Discord
    
@@ -641,6 +645,7 @@ ln -s config-hardcore.yml plugins/DeathBanPro/config-hardcore.yml
    ```
 
 3. **Example Discord Embed**
+
    ```
    🚫 Player Banned
    
@@ -720,6 +725,7 @@ enabled-worlds:
 **Problem:** Ban data stored locally per server
 
 **Solution 1: Shared Storage (Recommended)**
+
 ```bash
 # Use network mount or shared database
 # All servers read/write to same directory
@@ -734,6 +740,7 @@ enabled-worlds:
 ```
 
 **Solution 2: Periodic Sync**
+
 ```bash
 #!/bin/bash
 # sync-deathban.sh - Run every 15 minutes
@@ -748,6 +755,7 @@ rsync -avz \
 ```
 
 **Solution 3: Database Backend** (Future)
+
 ```kotlin
 // If implemented: Write PlayerData to shared database
 // Instead of YAML files per-server

@@ -43,8 +43,7 @@ class UpdateChecker(
                 setRequestProperty("User-Agent", "DeathBanPro/${plugin.description.version}")
             }.getInputStream()
             .bufferedReader()
-            .readText()
-            .trim()
+            .use { it.readText().trim() }
     }
 
     private fun isNewerVersion(

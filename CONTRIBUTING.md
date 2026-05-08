@@ -14,15 +14,20 @@ Thank you for your interest in contributing to DeathBan Pro! This document provi
 
 1. Fork the repository
 2. Clone your fork:
+
    ```bash
    git clone https://github.com/YOUR_USERNAME/deathban-pro.git
    cd deathban-pro
    ```
+
 3. Build the project:
+
    ```bash
    ./gradlew build
    ```
+
 4. Run tests:
+
    ```bash
    ./gradlew test
    ```
@@ -46,6 +51,7 @@ We use conventional commits:
 - `chore:` Maintenance tasks
 
 Examples:
+
 ```
 feat: add PlaceholderAPI integration
 fix: correct ban duration calculation for edge cases

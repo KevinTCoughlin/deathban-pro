@@ -23,6 +23,7 @@ SpigotMC requires **3 free resources** before you can sell premium content.
 Simple scheduled broadcast plugin - easy to build, universally useful.
 
 **Features:**
+
 - Scheduled messages at configurable intervals
 - Random or sequential message rotation
 - Per-world messages
@@ -43,6 +44,7 @@ The core plugin as specified.
 Basic player statistics tracking.
 
 **Features:**
+
 - Track deaths, kills, playtime
 - Leaderboards
 - PlaceholderAPI support
@@ -119,12 +121,14 @@ Basic player statistics tracking.
 ## Feature Backlog
 
 ### High Priority
+
 - [ ] PlaceholderAPI integration
 - [ ] MySQL/SQLite storage option
 - [ ] Ban history command
 - [ ] Discord webhook notifications
 
 ### Medium Priority
+
 - [ ] Web panel for ban management
 - [ ] API for other plugins
 - [ ] Custom death causes configuration
@@ -132,6 +136,7 @@ Basic player statistics tracking.
 - [ ] Appeal system
 
 ### Low Priority
+
 - [ ] Bedrock support (Geyser/Floodgate)
 - [ ] Bungeecord/Velocity sync
 - [ ] Localization (multiple languages)
@@ -142,6 +147,7 @@ Basic player statistics tracking.
 ## Version Milestones
 
 ### v1.0.0 - Initial Release
+
 - Individual ban mode
 - Rolling window system
 - Escalating bans
@@ -149,21 +155,25 @@ Basic player statistics tracking.
 - bStats + update checker
 
 ### v1.1.0 - Shared Lives
+
 - Server-wide shared pool
 - Team-based pools
 - Life management commands
 
 ### v1.2.0 - Themes
+
 - Theme system foundation
 - External theme loading
 - Default theme
 
 ### v1.3.0 - Integration
+
 - PlaceholderAPI support
 - Discord webhooks
 - Database storage option
 
 ### v2.0.0 - Enterprise
+
 - Web panel
 - Plugin API
 - Multi-server sync
@@ -195,17 +205,20 @@ Basic player statistics tracking.
 ## Success Metrics
 
 ### SpigotMC
+
 - Download count
 - Rating (target: 4.5+ stars)
 - Review count
 - Discussion engagement
 
 ### Technical
+
 - Bug reports (lower is better)
 - Feature requests (engagement signal)
 - GitHub stars/forks
 
 ### Business
+
 - Theme sales per month
 - Bundle vs individual ratio
 - Support ticket volume
@@ -227,6 +240,7 @@ Basic player statistics tracking.
 ## Pre-Launch Checklist
 
 ### Code
+
 - [ ] All tests passing
 - [ ] No compiler warnings
 - [ ] Code > 10kb (SpigotMC requirement)
@@ -235,6 +249,7 @@ Basic player statistics tracking.
 - [ ] Works on Spigot AND Paper
 
 ### Documentation
+
 - [ ] README.md
 - [ ] config.yml with comments
 - [ ] messages.yml with comments
@@ -242,6 +257,7 @@ Basic player statistics tracking.
 - [ ] CHANGELOG.md
 
 ### SpigotMC Listing
+
 - [ ] Title and tagline
 - [ ] Full description (BBCode)
 - [ ] Screenshots (min 3)
@@ -250,12 +266,14 @@ Basic player statistics tracking.
 - [ ] Source code link (optional)
 
 ### Marketing
+
 - [ ] Demo video (YouTube, unlisted is fine)
 - [ ] Reddit post (/r/admincraft, /r/mcservers)
 - [ ] Discord server announcements
 - [ ] Twitter/X post
 
 ### Account
+
 - [ ] 8+ weeks old
 - [ ] 80+ posts
 - [ ] 20+ ratings given

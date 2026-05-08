@@ -137,6 +137,7 @@ See the [Development Guide](docs/DEVELOPMENT_GUIDE.md) for detailed build instru
 ## Development
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines, or check the [Development Guide](docs/DEVELOPMENT_GUIDE.md) for comprehensive information on:
+
 - Building and testing
 - IDE setup (IntelliJ, VS Code)
 - Adding new features

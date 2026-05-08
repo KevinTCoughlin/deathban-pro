@@ -76,12 +76,14 @@ DeathBan Pro implements a layered architecture with clear separation of concerns
 ### Core Components
 
 #### 1. **DeathBanPlugin** (Main Entry Point)
+
 - Lifecycle management (onEnable, onDisable, reload)
 - Component initialization and injection
 - Listener and command registration
 - Metrics and update checking
 
 **Key Responsibilities:**
+
 - Create and manage all manager instances
 - Load configuration
 - Initialize theme engine
@@ -90,12 +92,14 @@ DeathBan Pro implements a layered architecture with clear separation of concerns
 #### 2. **Event Layer**
 
 ##### DeathListener
+
 - Handles `PlayerDeathEvent` (MONITOR priority)
 - Routes to individual or shared mode logic
 - Manages concurrent death processing
 - Prevents duplicate death processing
 
 ##### JoinListener
+
 - Handles `PlayerJoinEvent`
 - Checks for pending bans from crash recovery
 - Notifies player if currently banned
@@ -104,7 +108,9 @@ DeathBan Pro implements a layered architecture with clear separation of concerns
 #### 3. **Manager Layer**
 
 ##### BanManager
+
 **Responsibilities:**
+
 - Apply bans based on offense escalation
 - Pardon players (remove active bans)
 - Reset player records (clean slate)
@@ -113,12 +119,15 @@ DeathBan Pro implements a layered architecture with clear separation of concerns
 **State:** Atomic counter for metrics
 
 **Dependencies:**
+
 - Settings (for ban durations)
 - PlayerDataManager (for persistence)
 - ThemeManager (for effects)
 
 ##### OffenseManager
+
 **Responsibilities:**
+
 - Check if player meets ban threshold
 - Track deaths within rolling window
 - Check if player qualifies for offense reset
@@ -127,6 +136,7 @@ DeathBan Pro implements a layered architecture with clear separation of concerns
 **State:** Stateless (reads from PlayerData)
 
 **Key Logic:**
+
 ```
 shouldTriggerBan = deaths_in_window >= max_deaths
 
@@ -137,7 +147,9 @@ deaths_in_window = if rolling_window_enabled:
 ```
 
 ##### SharedLivesManager
+
 **Responsibilities:**
+
 - Manage global life pool
 - Support team-based pools (when enabled)
 - Add/consume lives
@@ -146,11 +158,14 @@ deaths_in_window = if rolling_window_enabled:
 **State:** In-memory pools with periodic YAML sync
 
 **Dependencies:**
+
 - Settings (for pool limits)
 - PlayerDataManager (for team membership)
 
 ##### ThemeManager
+
 **Responsibilities:**
+
 - Load and manage theme implementations
 - Apply theme effects (particles, sounds, messages)
 - Provide theme lifecycle
@@ -160,19 +175,23 @@ deaths_in_window = if rolling_window_enabled:
 #### 4. **Data Layer**
 
 ##### PlayerDataManager
+
 **Responsibilities:**
+
 - Load/cache PlayerData from YAML
 - Persist changes asynchronously
 - Handle concurrent access with locks
 - Manage pending bans (crash recovery)
 
 **Caching Strategy:**
+
 - In-memory cache with lazy loading
 - Load on first access (getOrCreate)
 - Async writes with WorkManager
 - Crash recovery via pending bans set
 
 **File Structure:**
+
 ```
 plugins/DeathBanPro/players/
 ├── 550e8400-e29b-41d4-a716-446655440000.yml
@@ -181,6 +200,7 @@ plugins/DeathBanPro/players/
 ```
 
 **Persistence Format:**
+
 ```yaml
 uuid: 550e8400-e29b-41d4-a716-446655440000
 offenseLevel: 2
@@ -351,21 +371,25 @@ Clean Period Triggers Reset
 ### Configuration Effects
 
 **Rolling Window Enabled (default: true)**
+
 - Only deaths in last 24h count toward threshold
 - Older deaths are pruned
 - Allows players to "wait out" old deaths
 
 **Rolling Window Disabled**
+
 - ALL deaths ever recorded count
 - Escalation never stops (without reset)
 - More punitive
 
 **Offense Reset Enabled (default: true)**
+
 - After clean period (7 days), offense resets
 - Provides path to redemption
 - Requires no deaths during period
 
 **Offense Reset Disabled**
+
 - Players never escape high offense levels
 - Previous bans always count
 - Very punitive
@@ -555,7 +579,9 @@ In-Memory Layer         File System Layer
 ### Write Strategy
 
 #### Synchronous Write
+
 **Used for:** Shutdown, explicit commands
+
 ```kotlin
 dataManager.save(data)
 // Blocks until I/O complete
@@ -563,7 +589,9 @@ dataManager.save(data)
 ```
 
 #### Asynchronous Write
+
 **Used for:** Death events, normal operation
+
 ```kotlin
 dataManager.saveAsync(data)
 // Returns immediately
@@ -576,6 +604,7 @@ dataManager.saveAsync(data)
 **Problem:** Server crash during async write → data loss
 
 **Solution:** Pending bans set
+
 ```kotlin
 // When death processed:
 dataManager.addPendingBan(player.uuid)
@@ -596,6 +625,7 @@ processPendingBans()
 ### Data Loading
 
 #### Lazy Loading on First Access
+
 ```
 getOrCreate(uuid):
     if uuid in cache:
@@ -607,6 +637,7 @@ getOrCreate(uuid):
 ```
 
 #### Cache Invalidation
+
 ```
 clearCache():
     cache.clear()
@@ -618,17 +649,20 @@ clearCache():
 ### Persistence Guarantees
 
 **Strong Guarantees:**
+
 - Death records never lost (written before response)
 - Bans never lost (written before kick)
 - Shutdown flushes all pending writes
 - All operations serialized per player
 
 **Eventual Consistency:**
+
 - Multiple deaths may queue async writes
 - Later writes override earlier ones
 - Within few seconds of finality
 
 **Atomicity:**
+
 - Per-file (full PlayerData written atomically)
 - If write fails, previous version unchanged
 - No partial record corruption
@@ -661,15 +695,18 @@ Main Thread                     Background Threads
 ### Synchronization Points
 
 **Protected Access:**
+
 - PlayerData Cache: ConcurrentHashMap (lock-free for most operations)
 - PlayerData mutation: Serialized per-player file writes
 - SharedLivesPool: Copy-on-write for team list
 
 **Lock-free Operations:**
+
 - Reads from cache (ConcurrentHashMap)
 - Atomic increments (totalBansIssued)
 
 **Serialized Operations:**
+
 - File I/O (one write per player per operation)
 - Theme loading (synchronized on first use)
 - Pool updates (atomic increment/decrement)
@@ -677,6 +714,7 @@ Main Thread                     Background Threads
 ### Data Race Prevention
 
 **Scenario 1: Concurrent Deaths**
+
 ```
 Player dies twice simultaneously
     │
@@ -702,6 +740,7 @@ Player dies twice simultaneously
 ```
 
 **Scenario 2: Reload During Write**
+
 ```
 /deathban reload
     ├─ clearCache()

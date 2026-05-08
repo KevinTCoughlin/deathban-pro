@@ -262,6 +262,7 @@ v1.0.0 - Initial Release
 ## Screenshots (Recommended)
 
 Prepare these screenshots:
+
 1. **Ban Screen** - The kick message when banned
 2. **Return Message** - Welcome back message after ban expires
 3. **Check Command** - Output of `/deathban check`
