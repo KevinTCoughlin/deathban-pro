@@ -50,17 +50,22 @@ class PlayerDataManager(
      * Marks the player data as dirty and schedules an async write.
      * The in-memory cache is updated immediately so subsequent reads
      * on the main thread see the latest state.
+     * A snapshot of the data is captured on the calling thread to avoid
+     * concurrent modification in the async writer.
      */
     fun saveAsync(data: PlayerData) {
         cache[data.uuid] = data
         dirty.add(data.uuid)
+
+        // Snapshot mutable state on the calling thread for thread safety
+        val snapshot = data.snapshot()
 
         plugin?.let { p ->
             p.server.scheduler.runTaskAsynchronously(
                 p,
                 Runnable {
                     try {
-                        writeToDisk(data)
+                        writeToDisk(snapshot)
                         dirty.remove(data.uuid)
                     } catch (e: Exception) {
                         logger.severe("Failed to async-save data for ${data.uuid}: ${e.message}")
@@ -69,7 +74,7 @@ class PlayerDataManager(
             )
         } ?: run {
             // Fallback: no plugin reference (e.g. tests) — save synchronously
-            writeToDisk(data)
+            writeToDisk(snapshot)
             dirty.remove(data.uuid)
         }
     }
@@ -136,13 +141,26 @@ class PlayerDataManager(
         data.pendingPardon = config.getBoolean("pending-pardon", false)
 
         if (config.contains("current-ban")) {
-            data.currentBan =
-                BanRecord(
-                    startTime = Instant.parse(config.getString("current-ban.start-time")),
-                    endTime = Instant.parse(config.getString("current-ban.end-time")),
-                    offenseLevel = config.getInt("current-ban.offense-level"),
-                    deathCause = config.getString("current-ban.death-cause") ?: "UNKNOWN",
-                )
+            val startTime =
+                config.getString("current-ban.start-time")?.let {
+                    runCatching { Instant.parse(it) }.getOrNull()
+                }
+            val endTime =
+                config.getString("current-ban.end-time")?.let {
+                    runCatching { Instant.parse(it) }.getOrNull()
+                }
+
+            if (startTime != null && endTime != null) {
+                data.currentBan =
+                    BanRecord(
+                        startTime = startTime,
+                        endTime = endTime,
+                        offenseLevel = config.getInt("current-ban.offense-level"),
+                        deathCause = config.getString("current-ban.death-cause") ?: "UNKNOWN",
+                    )
+            } else {
+                logger.warning("Skipping corrupted ban record for $uuid (missing or invalid timestamps)")
+            }
         }
 
         @Suppress("UNCHECKED_CAST")

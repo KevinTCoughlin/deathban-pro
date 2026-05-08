@@ -13,6 +13,12 @@ class DeathBanTabCompleter(
     private val dataManager: PlayerDataManager,
     private val banManager: BanManager,
 ) : TabCompleter {
+    @Volatile private var cachedStoredNames: List<String> = emptyList()
+
+    @Volatile private var cachedBannedNames: List<String> = emptyList()
+
+    @Volatile private var lastCacheRefresh: Long = 0L
+
     override fun onTabComplete(
         sender: CommandSender,
         command: Command,
@@ -99,19 +105,52 @@ class DeathBanTabCompleter(
 
     private fun getOnlinePlayerNames(): List<String> = Bukkit.getOnlinePlayers().map { it.name }
 
-    private fun getStoredPlayerNames(): List<String> =
-        dataManager
-            .getAllStoredPlayers()
-            .mapNotNull { Bukkit.getOfflinePlayer(it).name }
-            .filter { name -> Bukkit.getPlayer(name) == null }
+    /**
+     * Returns cached stored player names, refreshing asynchronously if stale.
+     * Avoids filesystem I/O on the main thread during tab completion.
+     */
+    private fun getStoredPlayerNames(): List<String> {
+        refreshCacheIfStale()
+        return cachedStoredNames.filter { name -> Bukkit.getPlayer(name) == null }
+    }
 
-    private fun getBannedPlayerNames(): List<String> =
-        banManager
-            .getActiveBans()
-            .mapNotNull { Bukkit.getOfflinePlayer(it).name }
+    /**
+     * Returns cached banned player names, refreshing asynchronously if stale.
+     */
+    private fun getBannedPlayerNames(): List<String> {
+        refreshCacheIfStale()
+        return cachedBannedNames
+    }
+
+    private fun refreshCacheIfStale() {
+        val now = System.currentTimeMillis()
+        if (now - lastCacheRefresh < CACHE_TTL_MS) return
+        lastCacheRefresh = now
+
+        plugin.server.scheduler.runTaskAsynchronously(
+            plugin,
+            Runnable {
+                val stored =
+                    dataManager
+                        .getAllStoredPlayers()
+                        .mapNotNull { Bukkit.getOfflinePlayer(it).name }
+                val banned =
+                    banManager
+                        .getActiveBans()
+                        .mapNotNull { Bukkit.getOfflinePlayer(it).name }
+
+                cachedStoredNames = stored
+                cachedBannedNames = banned
+            },
+        )
+    }
 
     private fun filterStartsWith(
         options: List<String>,
         prefix: String,
     ): List<String> = options.filter { it.lowercase().startsWith(prefix.lowercase()) }
+
+    companion object {
+        private const val CACHE_TTL_MS = 30_000L // 30 seconds
+    }
 }

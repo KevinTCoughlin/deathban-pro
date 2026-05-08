@@ -23,6 +23,20 @@ data class PlayerData(
             currentBan = null
         }
     }
+
+    /**
+     * Returns a deep copy safe to read from another thread.
+     * BanRecord and DeathRecord are immutable data classes, so shallow copies suffice for them.
+     */
+    fun snapshot(): PlayerData =
+        PlayerData(
+            uuid = uuid,
+            offenseLevel = offenseLevel,
+            lastDeathTime = lastDeathTime,
+            deaths = deaths.toMutableList(),
+            currentBan = currentBan,
+            pendingPardon = pendingPardon,
+        )
 }
 
 data class DeathRecord(

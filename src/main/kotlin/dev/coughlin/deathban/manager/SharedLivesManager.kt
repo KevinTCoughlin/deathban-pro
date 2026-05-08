@@ -127,16 +127,20 @@ class SharedLivesManager(
 
     /**
      * Schedule an async write. The in-memory state is always authoritative;
-     * this just persists the snapshot to disk off the main thread.
+     * this just persists a snapshot to disk off the main thread.
      */
     fun saveAsync() {
         dirty = true
+
+        // Snapshot all pool data on the calling thread for thread safety
+        val snapshot = snapshotPools()
+
         plugin?.let { p ->
             p.server.scheduler.runTaskAsynchronously(
                 p,
                 Runnable {
                     try {
-                        writeToDisk()
+                        writeToDisk(snapshot)
                         dirty = false
                     } catch (e: Exception) {
                         logger.severe("Failed to async-save shared lives: ${e.message}")
@@ -144,7 +148,7 @@ class SharedLivesManager(
                 },
             )
         } ?: run {
-            writeToDisk()
+            writeToDisk(snapshot)
             dirty = false
         }
     }
@@ -154,30 +158,54 @@ class SharedLivesManager(
      */
     fun saveAll() {
         if (dirty) {
-            writeToDisk()
+            writeToDisk(snapshotPools())
             dirty = false
             logger.info("Flushed shared lives pools to disk")
         }
     }
 
     fun save() {
-        writeToDisk()
+        writeToDisk(snapshotPools())
     }
 
-    private fun writeToDisk() {
+    /**
+     * Captures an immutable snapshot of all pool data safe for off-thread serialization.
+     */
+    private fun snapshotPools(): List<PoolSnapshot> =
+        pools.map { (id, pool) ->
+            PoolSnapshot(
+                id = id,
+                lives = pool.lives,
+                maxLives = pool.maxLives,
+                members = pool.members.toList(),
+                lastModified = pool.lastModified,
+                contributions = pool.contributions.toMap(),
+            )
+        }
+
+    private data class PoolSnapshot(
+        val id: String,
+        val lives: Int,
+        val maxLives: Int,
+        val members: List<UUID>,
+        val lastModified: Instant,
+        val contributions: Map<UUID, Int>,
+    )
+
+    private fun writeToDisk(snapshot: List<PoolSnapshot>) {
         val config = YamlConfiguration()
 
-        pools.forEach { (id, pool) ->
-            config.set("$id.lives", pool.lives)
-            config.set("$id.max-lives", pool.maxLives)
-            config.set("$id.members", pool.members.map { it.toString() })
-            config.set("$id.last-modified", pool.lastModified.toString())
+        snapshot.forEach { pool ->
+            config.set("${pool.id}.lives", pool.lives)
+            config.set("${pool.id}.max-lives", pool.maxLives)
+            config.set("${pool.id}.members", pool.members.map { it.toString() })
+            config.set("${pool.id}.last-modified", pool.lastModified.toString())
 
             val contribs =
                 pool.contributions.map { (uuid, count) ->
                     mapOf("uuid" to uuid.toString(), "count" to count)
                 }
-            config.set("$id.contributions", contribs)
+            config.set("${pool.id}.contributions", contribs)
         }
 
         config.save(poolsFile)

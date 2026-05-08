@@ -15,6 +15,7 @@ class ThemeManager(
 ) {
     private val themesFolder = File(dataFolder, "themes")
     private val themes = mutableMapOf<String, Theme>()
+    private val externalClassLoaders = mutableListOf<URLClassLoader>()
     private var activeThemeId: String = "default"
 
     init {
@@ -47,6 +48,7 @@ class ThemeManager(
 
     private fun loadThemeJar(jar: File) {
         val classLoader = URLClassLoader(arrayOf(jar.toURI().toURL()), javaClass.classLoader)
+        externalClassLoaders.add(classLoader)
 
         // Read theme.yml from JAR
         val themeYmlStream =
@@ -110,6 +112,14 @@ class ThemeManager(
         themes.values
             .filter { it.id !in listOf("default", "halloween") }
             .forEach { it.onUnload() }
+
+        // Close external classloaders to release file handles
+        externalClassLoaders.forEach { cl ->
+            runCatching { cl.close() }.onFailure { e ->
+                logger.warning("Failed to close theme classloader: ${e.message}")
+            }
+        }
+        externalClassLoaders.clear()
 
         themes.clear()
         registerBuiltInThemes()

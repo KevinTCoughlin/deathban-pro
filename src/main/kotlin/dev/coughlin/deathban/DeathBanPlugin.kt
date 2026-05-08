@@ -124,7 +124,35 @@ class DeathBanPlugin : JavaPlugin() {
         themeManager.reload()
         themeManager.setActiveTheme(settings.themeId)
         dataManager.clearCache()
-        sharedLivesManager?.reload()
+
+        // Rebuild managers so they pick up the new Settings
+        offenseManager = OffenseManager(settings)
+        banManager = BanManager(this, settings, messages, dataManager)
+
+        // Rebuild shared lives manager based on current mode
+        sharedLivesManager?.saveAll()
+        sharedLivesManager =
+            if (settings.mode == BanMode.SHARED) {
+                SharedLivesManager(
+                    dataFolder,
+                    logger,
+                    settings.sharedLivesDefault,
+                    settings.sharedLivesMax,
+                    this,
+                )
+            } else {
+                null
+            }
+
+        // Re-register listeners and commands with the new manager instances
+        unregisterListeners()
+        registerListeners()
+        registerCommands()
+    }
+
+    private fun unregisterListeners() {
+        org.bukkit.event.HandlerList
+            .unregisterAll(this)
     }
 
     private fun registerListeners() {

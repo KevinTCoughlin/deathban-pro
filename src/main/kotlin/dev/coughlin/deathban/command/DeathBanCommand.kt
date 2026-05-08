@@ -220,10 +220,11 @@ class DeathBanCommand(
                     sender.sendMessage(messages.get("errors.console-only-player"))
                     return true
                 }
-                val pool = manager.getPoolForPlayer(sender.uniqueId) ?: manager.getGlobalPool()
                 if (manager.addLife(sender.uniqueId)) {
+                    val pool = manager.getPoolForPlayer(sender.uniqueId) ?: manager.getGlobalPool()
                     sender.sendMessage(messages.getLifeAdded(pool.lives, pool.maxLives))
                 } else {
+                    val pool = manager.getPoolForPlayer(sender.uniqueId) ?: manager.getGlobalPool()
                     sender.sendMessage(messages.getPoolFull(pool.maxLives))
                 }
             }
