@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **reload() not propagating Settings** — Managers and listeners are now rebuilt on reload so config changes take effect immediately
+- **Thread-unsafe async saves in PlayerDataManager** — Player data is now snapshotted before async disk writes to prevent ConcurrentModificationException
+- **Thread-unsafe async saves in SharedLivesManager** — Pool data is now snapshotted into immutable records before async serialization
+- **Instant.parse(null) crash on corrupted player files** — Null-safe parsing with graceful fallback for corrupted ban timestamps and death records
+- **URLClassLoader leak in ThemeManager** — External theme classloaders are now stored and properly closed on reload
+- **Tab completion performing disk I/O on main thread** — Stored/banned player names are now cached with async refresh to prevent lag spikes
+- **handleLives showing stale pool state** — Pool is now queried after mutation for accurate feedback
+- **lives set command bypassing SharedLivesManager** — Now uses proper `setLives()` API with logging, lastModified update, and async save
+- **Expired ban cleanup never persisted** — Fixed dead code path in JoinListener so expired ban removal is saved to disk
+- **getActiveBans() polluting cache** — Active bans scan no longer permanently caches every player file
+- **Corrupted death records aborting entire player load** — Individual death records are now parsed defensively; one bad record no longer loses the whole file
+- **Contribution UUID parsing crash** — SharedLivesManager now uses runCatching for contribution UUID parsing, consistent with member parsing
+
+### Changed
+- Updated plugin.yml usage to include all subcommands (lives, team, theme)
+- Added security warning for external theme JARs in Theme interface docs and README
+
+### Technical
+- Kotlin 2.3.21 with Java 21 target
+- Spigot API 1.21+ compatibility
+- 131+ unit tests covering core logic
+
 ## [1.0.0-beta.1] - 2025-01-25
 
 ### Added
@@ -41,10 +64,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Comprehensive documentation
 
 ### Technical
-- Kotlin 1.9.22 with Java 21 target
-- Spigot API 1.21.1 compatibility
+- Kotlin 2.3.21 with Java 21 target
+- Spigot API 1.21+ compatibility
 - Shadow JAR with relocated bStats
-- 47 unit tests covering core logic
+- 100+ unit tests covering core logic
 
 ## [1.2.0-alpha.1] - 2025-01-25
 

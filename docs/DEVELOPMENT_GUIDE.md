@@ -17,17 +17,17 @@ This guide covers building from source, development setup, running tests, and ex
 
 ### Required Tools
 
-- **Java**: 25+ (LTS preferred: Java 21+)
+- **Java**: 21+ (LTS recommended)
 - **Git**: Latest version
-- **Gradle**: 8.0+ (included as wrapper)
-- **Kotlin**: 1.9.22+ (managed by Gradle)
+- **Gradle**: 9.0+ (included as wrapper)
+- **Kotlin**: 2.3+ (managed by Gradle)
 
 ### Verify Installation
 
 ```bash
 # Check Java version
 java -version
-# Expected: java 25, 21 LTS, or later
+# Expected: java 21 LTS or later
 
 # Check Git
 git --version

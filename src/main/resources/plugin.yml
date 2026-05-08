@@ -9,7 +9,7 @@ website: https://github.com/kevintcoughlin/deathban-pro
 commands:
   deathban:
     description: DeathBan Pro main command
-    usage: /<command> [check|reset|pardon|reload] [player]
+    usage: /<command> [help|check|reset|pardon|lives|team|theme|reload] ...
     aliases: [db, dban]
 
 permissions:

@@ -137,7 +137,10 @@ class PlayerDataManager(
         val data = PlayerData(uuid)
 
         data.offenseLevel = config.getInt("offense-level", 0)
-        data.lastDeathTime = config.getString("last-death-time")?.let { Instant.parse(it) }
+        data.lastDeathTime =
+            config.getString("last-death-time")?.let {
+                runCatching { Instant.parse(it) }.getOrNull()
+            }
         data.pendingPardon = config.getBoolean("pending-pardon", false)
 
         if (config.contains("current-ban")) {
@@ -166,21 +169,25 @@ class PlayerDataManager(
         @Suppress("UNCHECKED_CAST")
         val deathsList = config.getList("deaths") as? List<Map<String, Any>> ?: emptyList()
         deathsList.forEach { deathMap ->
-            val locationMap = deathMap["location"] as? Map<String, Any> ?: return@forEach
-            data.deaths.add(
-                DeathRecord(
-                    timestamp = Instant.parse(deathMap["timestamp"] as String),
-                    world = deathMap["world"] as String,
-                    cause = deathMap["cause"] as String,
-                    killer = (deathMap["killer"] as? String)?.let { UUID.fromString(it) },
-                    location =
-                        LocationData(
-                            x = (locationMap["x"] as Number).toDouble(),
-                            y = (locationMap["y"] as Number).toDouble(),
-                            z = (locationMap["z"] as Number).toDouble(),
-                        ),
-                ),
-            )
+            runCatching {
+                val locationMap = deathMap["location"] as? Map<String, Any> ?: return@forEach
+                data.deaths.add(
+                    DeathRecord(
+                        timestamp = Instant.parse(deathMap["timestamp"] as String),
+                        world = deathMap["world"] as String,
+                        cause = deathMap["cause"] as String,
+                        killer = (deathMap["killer"] as? String)?.let { UUID.fromString(it) },
+                        location =
+                            LocationData(
+                                x = (locationMap["x"] as Number).toDouble(),
+                                y = (locationMap["y"] as Number).toDouble(),
+                                z = (locationMap["z"] as Number).toDouble(),
+                            ),
+                    ),
+                )
+            }.onFailure { e ->
+                logger.warning("Skipping corrupted death record for $uuid: ${e.message}")
+            }
         }
 
         return data
@@ -197,7 +204,9 @@ class PlayerDataManager(
 
     fun getActiveBans(): List<UUID> =
         getAllStoredPlayers().filter { uuid ->
-            get(uuid)?.isBanned() == true
+            // Use load() directly without polluting the cache
+            val data = cache[uuid] ?: load(uuid)
+            data?.isBanned() == true
         }
 
     // Pending bans (crash recovery)

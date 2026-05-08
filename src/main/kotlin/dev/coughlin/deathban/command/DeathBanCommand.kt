@@ -243,8 +243,7 @@ class DeathBanCommand(
                     return true
                 }
                 val pool = manager.getGlobalPool()
-                pool.lives = amount.coerceAtMost(pool.maxLives)
-                manager.save()
+                manager.setLives(pool.id, amount)
                 sender.sendMessage(messages.getPoolStatus(pool.id, pool.lives, pool.maxLives))
             }
             else -> {

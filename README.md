@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/KevinTCoughlin/deathban-pro/branch/main/graph/badge.svg)](https://codecov.io/gh/KevinTCoughlin/deathban-pro)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.21%2B-brightgreen)](https://www.minecraft.net/)
-[![Java](https://img.shields.io/badge/Java-25%2B-orange)](https://adoptium.net/)
+[![Java](https://img.shields.io/badge/Java-21%2B-orange)](https://adoptium.net/)
 
 Hardcore-style death penalties for Minecraft servers. When players die, they receive temporary bans that escalate with repeated deaths.
 
@@ -24,7 +24,7 @@ Hardcore-style death penalties for Minecraft servers. When players die, they rec
 ## Requirements
 
 - Spigot or Paper 1.21+
-- Java 25+
+- Java 21+
 
 ## Installation
 
@@ -113,6 +113,8 @@ DeathBan Pro includes a theme system for customizing the visual and audio experi
 ### Custom Themes
 
 Create custom themes by implementing the `Theme` interface and packaging as a JAR. Place theme JARs in `plugins/DeathBanPro/themes/`.
+
+> ⚠️ **Security Warning:** Theme JARs execute arbitrary code with the same permissions as the server process. Only install theme JARs from sources you trust.
 
 ## Documentation
 

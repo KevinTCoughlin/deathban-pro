@@ -123,6 +123,17 @@ class SharedLivesManager(
         return removed
     }
 
+    fun setLives(
+        poolId: String,
+        amount: Int,
+    ) {
+        val pool = getOrCreatePool(poolId)
+        pool.lives = amount.coerceIn(0, pool.maxLives)
+        pool.lastModified = Instant.now()
+        logger.info("Pool '${pool.id}' lives set to ${pool.lives}/${pool.maxLives}")
+        saveAsync()
+    }
+
     fun getAllPools(): List<SharedLivesPool> = pools.values.toList()
 
     /**
@@ -249,7 +260,10 @@ class SharedLivesManager(
             @Suppress("UNCHECKED_CAST")
             val contribs = config.getList("$id.contributions") as? List<Map<String, Any>> ?: emptyList()
             contribs.forEach { contrib ->
-                val uuid = (contrib["uuid"] as? String)?.let { UUID.fromString(it) }
+                val uuid =
+                    (contrib["uuid"] as? String)?.let {
+                        runCatching { UUID.fromString(it) }.getOrNull()
+                    }
                 val count = (contrib["count"] as? Number)?.toInt() ?: 0
                 if (uuid != null) {
                     pool.contributions[uuid] = count

@@ -30,6 +30,9 @@ class JoinListener(
     fun onPlayerLogin(event: PlayerLoginEvent) {
         val data = dataManager.get(event.player.uniqueId) ?: return
 
+        // Track whether a ban existed before clearing
+        val hadBan = data.currentBan != null
+
         // Clear any expired bans first
         data.clearExpiredBan()
 
@@ -43,8 +46,8 @@ class JoinListener(
             return
         }
 
-        // If ban expired, save the cleared state (async — not critical path)
-        if (ban != null && !data.isBanned()) {
+        // If ban was just cleared as expired, persist the cleanup
+        if (hadBan && data.currentBan == null) {
             dataManager.saveAsync(data)
         }
     }

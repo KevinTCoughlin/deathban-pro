@@ -17,6 +17,10 @@ import org.bukkit.Sound
  *    main: com.example.MyTheme
  *    ```
  * 3. Place JAR in plugins/DeathBanPro/themes/
+ *
+ * **Security Warning:** Theme JARs execute arbitrary code with the same permissions
+ * as the server process. Only install theme JARs from sources you trust. A malicious
+ * theme could access the filesystem, network, or server internals.
  */
 interface Theme {
     /** Unique identifier for this theme (lowercase, no spaces) */
