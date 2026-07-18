@@ -19,7 +19,7 @@ dependencies {
     implementation("org.bstats:bstats-bukkit:3.2.1")
 
     testImplementation("org.spigotmc:spigot-api:26.2-R0.1-SNAPSHOT")
-    testImplementation("org.junit.jupiter:junit-jupiter:6.1.1")
+    testImplementation("org.junit.jupiter:junit-jupiter:6.1.2")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("io.mockk:mockk:1.14.11")
     testImplementation("com.tngtech.archunit:archunit-junit5:1.4.2")
