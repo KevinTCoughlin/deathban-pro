@@ -5,6 +5,7 @@ import dev.coughlin.deathban.config.Messages
 import dev.coughlin.deathban.data.PlayerDataManager
 import dev.coughlin.deathban.manager.BanManager
 import dev.coughlin.deathban.manager.OffenseManager
+import dev.coughlin.deathban.manager.SharedLivesManager
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
@@ -290,6 +291,10 @@ class DeathBanCommand(
                     return true
                 }
                 val teamName = args[2].lowercase()
+                if (!SharedLivesManager.isValidTeamId(teamName)) {
+                    sender.sendMessage(messages.prefixed("errors.invalid-team-name"))
+                    return true
+                }
                 val pool = manager.createTeamPool(teamName, sender.uniqueId)
                 if (pool != null) {
                     sender.sendMessage(messages.getTeamCreated(teamName))

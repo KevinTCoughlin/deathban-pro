@@ -6,6 +6,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 object TimeUtil {
+    private val durationPattern = Regex("([1-9]\\d*)([smhdw])")
     private val formatter =
         DateTimeFormatter
             .ofPattern("MMM d, yyyy h:mm a")
@@ -13,17 +14,24 @@ object TimeUtil {
 
     fun parseDuration(input: String): Duration {
         val trimmed = input.trim().lowercase()
+        val match =
+            durationPattern.matchEntire(trimmed)
+                ?: throw IllegalArgumentException("Invalid duration '$input'; expected a positive value such as 30m, 24h, or 7d")
         val number =
-            trimmed.dropLast(1).toLongOrNull()
-                ?: throw IllegalArgumentException("Invalid duration format: $input")
+            match.groupValues[1].toLongOrNull()
+                ?: throw IllegalArgumentException("Duration is too large: $input")
 
-        return when (trimmed.last()) {
-            's' -> Duration.ofSeconds(number)
-            'm' -> Duration.ofMinutes(number)
-            'h' -> Duration.ofHours(number)
-            'd' -> Duration.ofDays(number)
-            'w' -> Duration.ofDays(number * 7)
-            else -> throw IllegalArgumentException("Unknown time unit in: $input")
+        return try {
+            when (match.groupValues[2][0]) {
+                's' -> Duration.ofSeconds(number)
+                'm' -> Duration.ofMinutes(number)
+                'h' -> Duration.ofHours(number)
+                'd' -> Duration.ofDays(number)
+                'w' -> Duration.ofDays(Math.multiplyExact(number, 7))
+                else -> error("Unreachable duration unit")
+            }
+        } catch (e: ArithmeticException) {
+            throw IllegalArgumentException("Duration is too large: $input", e)
         }
     }
 

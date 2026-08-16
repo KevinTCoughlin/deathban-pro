@@ -19,7 +19,7 @@ data class PlayerData(
 
     fun clearExpiredBan() {
         val ban = currentBan ?: return
-        if (Instant.now().isAfter(ban.endTime)) {
+        if (!Instant.now().isBefore(ban.endTime)) {
             currentBan = null
         }
     }

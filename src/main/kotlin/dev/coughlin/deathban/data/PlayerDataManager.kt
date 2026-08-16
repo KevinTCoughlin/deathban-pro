@@ -6,6 +6,7 @@ import java.io.File
 import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 import java.util.logging.Logger
 
 class PlayerDataManager(
@@ -16,8 +17,14 @@ class PlayerDataManager(
     private val playersFolder = File(dataFolder, "players")
     private val cache = ConcurrentHashMap<UUID, PlayerData>()
     private val dirty = ConcurrentHashMap.newKeySet<UUID>()
+    private val saveRevisions = ConcurrentHashMap<UUID, AtomicLong>()
+    private val saveLocks = ConcurrentHashMap<UUID, Any>()
     private val pendingBans = ConcurrentHashMap.newKeySet<UUID>()
     private val pendingBansFile = File(dataFolder, "pending-bans.yml")
+    private val pendingBansRevision = AtomicLong()
+    private val pendingBansLock = Any()
+
+    @Volatile private var pendingBansDirty = false
 
     init {
         playersFolder.mkdirs()
@@ -43,7 +50,8 @@ class PlayerDataManager(
      */
     fun save(data: PlayerData) {
         cache[data.uuid] = data
-        writeToDisk(data)
+        val revision = nextRevision(data.uuid)
+        persistSnapshot(data.uuid, revision, data.snapshot())
     }
 
     /**
@@ -56,6 +64,7 @@ class PlayerDataManager(
     fun saveAsync(data: PlayerData) {
         cache[data.uuid] = data
         dirty.add(data.uuid)
+        val revision = nextRevision(data.uuid)
 
         // Snapshot mutable state on the calling thread for thread safety
         val snapshot = data.snapshot()
@@ -65,17 +74,14 @@ class PlayerDataManager(
                 p,
                 Runnable {
                     try {
-                        writeToDisk(snapshot)
-                        dirty.remove(data.uuid)
+                        persistSnapshot(data.uuid, revision, snapshot)
                     } catch (e: Exception) {
                         logger.severe("Failed to async-save data for ${data.uuid}: ${e.message}")
                     }
                 },
             )
         } ?: run {
-            // Fallback: no plugin reference (e.g. tests) — save synchronously
-            writeToDisk(snapshot)
-            dirty.remove(data.uuid)
+            persistSnapshot(data.uuid, revision, snapshot)
         }
     }
 
@@ -86,11 +92,37 @@ class PlayerDataManager(
     fun saveAll() {
         val dirtyUuids = dirty.toSet()
         for (uuid in dirtyUuids) {
-            cache[uuid]?.let { writeToDisk(it) }
-            dirty.remove(uuid)
+            cache[uuid]?.let { data ->
+                val revision = nextRevision(uuid)
+                persistSnapshot(uuid, revision, data.snapshot())
+            }
+        }
+        if (pendingBansDirty) {
+            val revision = pendingBansRevision.incrementAndGet()
+            persistPendingBans(revision, pendingBans.toList())
         }
         if (dirtyUuids.isNotEmpty()) {
             logger.info("Flushed ${dirtyUuids.size} dirty player record(s) to disk")
+        }
+    }
+
+    private fun nextRevision(uuid: UUID): Long =
+        saveRevisions
+            .computeIfAbsent(uuid) { AtomicLong() }
+            .incrementAndGet()
+
+    private fun persistSnapshot(
+        uuid: UUID,
+        revision: Long,
+        snapshot: PlayerData,
+    ) {
+        val lock = saveLocks.computeIfAbsent(uuid) { Any() }
+        synchronized(lock) {
+            if (saveRevisions[uuid]?.get() != revision) return
+            writeToDisk(snapshot)
+            if (saveRevisions[uuid]?.get() == revision) {
+                dirty.remove(uuid)
+            }
         }
     }
 
@@ -166,11 +198,10 @@ class PlayerDataManager(
             }
         }
 
-        @Suppress("UNCHECKED_CAST")
-        val deathsList = config.getList("deaths") as? List<Map<String, Any>> ?: emptyList()
+        val deathsList = config.getMapList("deaths")
         deathsList.forEach { deathMap ->
             runCatching {
-                val locationMap = deathMap["location"] as? Map<String, Any> ?: return@forEach
+                val locationMap = deathMap["location"] as? Map<*, *> ?: return@forEach
                 data.deaths.add(
                     DeathRecord(
                         timestamp = Instant.parse(deathMap["timestamp"] as String),
@@ -211,31 +242,44 @@ class PlayerDataManager(
 
     // Pending bans (crash recovery)
     fun addPendingBan(uuid: UUID) {
-        pendingBans.add(uuid)
-        savePendingBansAsync()
+        if (pendingBans.add(uuid)) savePendingBansAsync()
     }
 
     fun removePendingBan(uuid: UUID) {
-        pendingBans.remove(uuid)
-        savePendingBansAsync()
+        if (pendingBans.remove(uuid)) savePendingBansAsync()
     }
 
     fun getPendingBans(): Set<UUID> = pendingBans.toSet()
 
     private fun savePendingBansAsync() {
+        pendingBansDirty = true
+        val revision = pendingBansRevision.incrementAndGet()
         val snapshot = pendingBans.toList()
         plugin?.let { p ->
             p.server.scheduler.runTaskAsynchronously(
                 p,
                 Runnable {
                     try {
-                        writePendingBans(snapshot)
+                        persistPendingBans(revision, snapshot)
                     } catch (e: Exception) {
                         logger.severe("Failed to async-save pending bans: ${e.message}")
                     }
                 },
             )
-        } ?: writePendingBans(snapshot)
+        } ?: persistPendingBans(revision, snapshot)
+    }
+
+    private fun persistPendingBans(
+        revision: Long,
+        snapshot: List<UUID>,
+    ) {
+        synchronized(pendingBansLock) {
+            if (pendingBansRevision.get() != revision) return
+            writePendingBans(snapshot)
+            if (pendingBansRevision.get() == revision) {
+                pendingBansDirty = false
+            }
+        }
     }
 
     private fun writePendingBans(uuids: List<UUID>) {

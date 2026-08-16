@@ -77,4 +77,5 @@ errors:
   no-permission: "&cYou don't have permission to do that."
   player-not-found: "&cPlayer not found: {player}"
   invalid-usage: "&cUsage: {usage}"
+  invalid-team-name: "&cTeam names must be 1-32 characters using only letters, numbers, underscores, or hyphens."
   console-only-player: "&cThis command can only be used by players."

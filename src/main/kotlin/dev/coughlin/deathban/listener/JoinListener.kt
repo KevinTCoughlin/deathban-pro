@@ -9,6 +9,8 @@ import org.bukkit.event.player.AsyncPlayerPreLoginEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerLoginEvent
 import org.bukkit.plugin.Plugin
+import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
 class JoinListener(
     private val plugin: Plugin,
@@ -16,6 +18,8 @@ class JoinListener(
     private val dataManager: PlayerDataManager,
     var updateNotification: String? = null,
 ) : Listener {
+    private val expiredBanReturns = ConcurrentHashMap.newKeySet<UUID>()
+
     /**
      * Pre-load player data from disk on the async login thread so that
      * the subsequent [onPlayerLogin] (main thread) never touches the filesystem.
@@ -48,6 +52,7 @@ class JoinListener(
 
         // If ban was just cleared as expired, persist the cleanup
         if (hadBan && data.currentBan == null) {
+            expiredBanReturns.add(event.player.uniqueId)
             dataManager.saveAsync(data)
         }
     }
@@ -55,11 +60,10 @@ class JoinListener(
     @EventHandler
     fun onPlayerJoin(event: PlayerJoinEvent) {
         val player = event.player
-        val data = dataManager.get(player.uniqueId) ?: return
+        val data = dataManager.get(player.uniqueId)
 
         // Show return message if ban just expired
-        if (data.currentBan == null && data.deaths.isNotEmpty()) {
-            // Check if they were recently banned (within last login)
+        if (data != null && expiredBanReturns.remove(player.uniqueId)) {
             plugin.server.scheduler.runTaskLater(
                 plugin,
                 Runnable {
@@ -79,7 +83,7 @@ class JoinListener(
         }
 
         // Notify of pardon (set by admin while offline)
-        if (data.pendingPardon) {
+        if (data?.pendingPardon == true) {
             data.pendingPardon = false
             dataManager.saveAsync(data)
 

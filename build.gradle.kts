@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "dev.coughlin"
-version = "1.0.0-beta.1"
+version = providers.gradleProperty("version").getOrElse("1.0.0-beta.1")
 
 repositories {
     mavenCentral()
@@ -26,7 +26,12 @@ dependencies {
 }
 
 tasks {
+    jar {
+        enabled = false
+    }
+
     shadowJar {
+        archiveBaseName.set("DeathBanPro")
         archiveClassifier.set("")
         relocate("org.bstats", "dev.coughlin.deathban.metrics.bstats")
 
@@ -194,7 +199,7 @@ tasks {
 
     // Gradle wrapper verification
     wrapper {
-        version = "9.5.0"
+        version = "9.6.1"
         distributionType = Wrapper.DistributionType.ALL
         validateDistributionUrl = true
     }

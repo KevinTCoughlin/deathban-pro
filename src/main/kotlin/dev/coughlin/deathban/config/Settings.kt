@@ -19,13 +19,20 @@ class Settings(
     // Mode configuration
     val mode: BanMode =
         when (config.getString("mode")?.lowercase()) {
+            null, "individual" -> BanMode.INDIVIDUAL
             "shared" -> BanMode.SHARED
-            else -> BanMode.INDIVIDUAL
+            else -> throw IllegalArgumentException("mode must be 'individual' or 'shared'")
         }
 
     // Shared lives configuration
-    val sharedLivesDefault: Int = config.getInt("shared-lives.default-lives", 10)
-    val sharedLivesMax: Int = config.getInt("shared-lives.max-lives", 20)
+    val sharedLivesMax: Int =
+        config
+            .getInt("shared-lives.max-lives", 20)
+            .also { require(it > 0) { "shared-lives.max-lives must be greater than 0" } }
+    val sharedLivesDefault: Int =
+        config
+            .getInt("shared-lives.default-lives", 10)
+            .also { require(it in 0..sharedLivesMax) { "shared-lives.default-lives must be between 0 and $sharedLivesMax" } }
     val sharedLivesAllowTeams: Boolean = config.getBoolean("shared-lives.allow-teams", true)
     val sharedLivesEmptyPoolBan: Duration =
         TimeUtil.parseDuration(
@@ -37,7 +44,10 @@ class Settings(
         TimeUtil.parseDuration(
             config.getString("rolling-window.duration") ?: "24h",
         )
-    override val maxDeathsInWindow: Int = config.getInt("rolling-window.max-deaths", 3)
+    override val maxDeathsInWindow: Int =
+        config
+            .getInt("rolling-window.max-deaths", 3)
+            .also { require(it > 0) { "rolling-window.max-deaths must be greater than 0" } }
 
     val banDurations: Map<Int, Duration> = loadBanDurations(config)
 
@@ -59,11 +69,15 @@ class Settings(
 
     private fun loadBanDurations(config: FileConfiguration): Map<Int, Duration> {
         val section = config.getConfigurationSection("ban-durations") ?: return defaultBanDurations()
-        return section.getKeys(false).associate { key ->
-            val level = key.toIntOrNull() ?: 1
-            val duration = TimeUtil.parseDuration(section.getString(key) ?: "1h")
-            level to duration
-        }
+        val durations =
+            section.getKeys(false).associate { key ->
+                val level = key.toIntOrNull()
+                require(level != null && level > 0) { "ban-durations keys must be positive offense levels: '$key'" }
+                val duration = TimeUtil.parseDuration(section.getString(key) ?: "1h")
+                level to duration
+            }
+        require(durations.isNotEmpty()) { "ban-durations must contain at least one offense level" }
+        return durations
     }
 
     private fun defaultBanDurations() =

@@ -50,6 +50,8 @@ Hardcore-style death penalties for Minecraft servers. When players die, they rec
 | `/deathban pardon <player>` | Remove active ban | `deathban.admin` |
 | `/deathban reload` | Reload configuration | `deathban.admin` |
 
+Team names must be 1–32 characters and may contain lowercase letters, numbers, underscores, and hyphens.
+
 ## Permissions
 
 | Permission | Description | Default |

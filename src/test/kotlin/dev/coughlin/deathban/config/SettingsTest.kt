@@ -5,6 +5,7 @@ import io.mockk.mockk
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.FileConfiguration
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -15,6 +16,8 @@ class SettingsTest {
         rollingWindowEnabled: Boolean = true,
         rollingWindowDuration: String = "24h",
         maxDeaths: Int = 3,
+        sharedLivesDefault: Int = 10,
+        sharedLivesMax: Int = 20,
         offenseResetEnabled: Boolean = true,
         offenseResetPeriod: String = "168h",
         enabledWorlds: List<String> = emptyList(),
@@ -28,8 +31,8 @@ class SettingsTest {
         every { config.getBoolean("update-check", true) } returns true
         every { config.getBoolean("metrics", true) } returns true
         every { config.getString("mode") } returns mode
-        every { config.getInt("shared-lives.default-lives", 10) } returns 10
-        every { config.getInt("shared-lives.max-lives", 20) } returns 20
+        every { config.getInt("shared-lives.default-lives", 10) } returns sharedLivesDefault
+        every { config.getInt("shared-lives.max-lives", 20) } returns sharedLivesMax
         every { config.getBoolean("shared-lives.allow-teams", true) } returns true
         every { config.getString("shared-lives.empty-pool-ban") } returns "1h"
         every { config.getBoolean("rolling-window.enabled", true) } returns rollingWindowEnabled
@@ -156,5 +159,29 @@ class SettingsTest {
         val settings = Settings(config)
 
         assertEquals(BanMode.SHARED, settings.mode)
+    }
+
+    @Test
+    fun `invalid mode is rejected`() {
+        assertThrows<IllegalArgumentException> { Settings(createMockConfig(mode = "typo")) }
+    }
+
+    @Test
+    fun `non-positive death threshold is rejected`() {
+        assertThrows<IllegalArgumentException> { Settings(createMockConfig(maxDeaths = 0)) }
+    }
+
+    @Test
+    fun `shared lives defaults must fit configured maximum`() {
+        assertThrows<IllegalArgumentException> {
+            Settings(createMockConfig(sharedLivesDefault = 11, sharedLivesMax = 10))
+        }
+    }
+
+    @Test
+    fun `invalid ban duration level is rejected`() {
+        assertThrows<IllegalArgumentException> {
+            Settings(createMockConfig(banDurations = mapOf("first" to "1h")))
+        }
     }
 }
