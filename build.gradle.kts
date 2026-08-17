@@ -1,6 +1,6 @@
 plugins {
     kotlin("jvm") version "2.4.10"
-    id("com.gradleup.shadow") version "9.6.0"
+    id("com.gradleup.shadow") version "9.6.1"
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
     jacoco
 }
