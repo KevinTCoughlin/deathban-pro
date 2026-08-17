@@ -6,6 +6,7 @@ import org.bukkit.plugin.Plugin
 import java.io.File
 import java.time.Instant
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicLong
 import java.util.logging.Logger
 
 class SharedLivesManager(
@@ -17,6 +18,8 @@ class SharedLivesManager(
 ) {
     private val poolsFile = File(dataFolder, "shared-lives.yml")
     private val pools = mutableMapOf<String, SharedLivesPool>()
+    private val saveRevision = AtomicLong()
+    private val saveLock = Any()
 
     @Volatile private var dirty = false
 
@@ -99,8 +102,8 @@ class SharedLivesManager(
         id: String,
         creator: UUID,
     ): SharedLivesPool? {
+        if (!isValidTeamId(id)) return null
         if (pools.containsKey(id)) return null
-        if (id == SharedLivesPool.GLOBAL_POOL_ID) return null
 
         val pool =
             SharedLivesPool(
@@ -140,6 +143,7 @@ class SharedLivesManager(
      */
     fun saveAsync() {
         dirty = true
+        val revision = saveRevision.incrementAndGet()
 
         // Snapshot all pool data on the calling thread for thread safety
         val snapshot = snapshotPools()
@@ -149,16 +153,14 @@ class SharedLivesManager(
                 p,
                 Runnable {
                     try {
-                        writeToDisk(snapshot)
-                        dirty = false
+                        persistSnapshot(revision, snapshot)
                     } catch (e: Exception) {
                         logger.severe("Failed to async-save shared lives: ${e.message}")
                     }
                 },
             )
         } ?: run {
-            writeToDisk(snapshot)
-            dirty = false
+            persistSnapshot(revision, snapshot)
         }
     }
 
@@ -167,14 +169,28 @@ class SharedLivesManager(
      */
     fun saveAll() {
         if (dirty) {
-            writeToDisk(snapshotPools())
-            dirty = false
+            val revision = saveRevision.incrementAndGet()
+            persistSnapshot(revision, snapshotPools())
             logger.info("Flushed shared lives pools to disk")
         }
     }
 
     fun save() {
-        writeToDisk(snapshotPools())
+        val revision = saveRevision.incrementAndGet()
+        persistSnapshot(revision, snapshotPools())
+    }
+
+    private fun persistSnapshot(
+        revision: Long,
+        snapshot: List<PoolSnapshot>,
+    ) {
+        synchronized(saveLock) {
+            if (saveRevision.get() != revision) return
+            writeToDisk(snapshot)
+            if (saveRevision.get() == revision) {
+                dirty = false
+            }
+        }
     }
 
     /**
@@ -255,8 +271,7 @@ class SharedLivesManager(
                 }
             }
 
-            @Suppress("UNCHECKED_CAST")
-            val contribs = config.getList("$id.contributions") as? List<Map<String, Any>> ?: emptyList()
+            val contribs = config.getMapList("$id.contributions")
             contribs.forEach { contrib ->
                 val uuid =
                     (contrib["uuid"] as? String)?.let {
@@ -275,7 +290,14 @@ class SharedLivesManager(
     }
 
     fun reload() {
+        saveAll()
         pools.clear()
         load()
+    }
+
+    companion object {
+        private val TEAM_ID_PATTERN = Regex("[a-z0-9_-]{1,32}")
+
+        fun isValidTeamId(id: String): Boolean = id != SharedLivesPool.GLOBAL_POOL_ID && TEAM_ID_PATTERN.matches(id)
     }
 }

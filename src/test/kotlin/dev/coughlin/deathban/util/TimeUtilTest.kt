@@ -55,6 +55,10 @@ class TimeUtilTest {
         assertThrows<IllegalArgumentException> { TimeUtil.parseDuration("abc") }
         assertThrows<IllegalArgumentException> { TimeUtil.parseDuration("1x") }
         assertThrows<IllegalArgumentException> { TimeUtil.parseDuration("h") }
+        assertThrows<IllegalArgumentException> { TimeUtil.parseDuration("") }
+        assertThrows<IllegalArgumentException> { TimeUtil.parseDuration("0h") }
+        assertThrows<IllegalArgumentException> { TimeUtil.parseDuration("-1h") }
+        assertThrows<IllegalArgumentException> { TimeUtil.parseDuration("${Long.MAX_VALUE}w") }
     }
 
     @Test

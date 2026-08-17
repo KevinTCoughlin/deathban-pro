@@ -36,28 +36,30 @@ jobs:
 
       - name: Get version from tag or input
         id: version
+        env:
+          VERSION_INPUT: ${{ github.event.inputs.version }}
         run: |
-          if [ -z "${{ github.event.inputs.version }}" ]; then
+          if [ -z "$VERSION_INPUT" ]; then
             VERSION=${GITHUB_REF#refs/tags/v}
           else
-            VERSION=${{ github.event.inputs.version }}
+            VERSION=$VERSION_INPUT
           fi
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-          IS_SNAPSHOT=$(echo "$VERSION" | grep -c "SNAPSHOT" || echo 0)
-          echo "IS_SNAPSHOT=$IS_SNAPSHOT" >> $GITHUB_OUTPUT
-          IS_PRERELEASE=$(echo "$VERSION" | grep -E "(alpha|beta|rc|-)" | wc -l)
-          echo "IS_PRERELEASE=$((IS_PRERELEASE > 0 ? 1 : 0))" >> $GITHUB_OUTPUT
+          VERSION_METADATA=$(bash scripts/validate-release-version.sh "$VERSION")
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "$VERSION_METADATA" >> "$GITHUB_OUTPUT"
 
       - name: Build
-        run: ./gradlew shadowJar --no-daemon
+        run: ./gradlew check shadowJar --no-daemon -Pversion=${{ steps.version.outputs.VERSION }}
 
-      - name: Run tests
-        run: ./gradlew test --no-daemon
+      - name: Verify embedded version
+        run: |
+          unzip -p "build/libs/DeathBanPro-${{ steps.version.outputs.VERSION }}.jar" plugin.yml |
+            grep -Fx "version: ${{ steps.version.outputs.VERSION }}"
 
       - name: Rename JAR with version
         run: |
           mkdir -p build/release
-          cp build/libs/*.jar build/release/DeathBanPro-${{ steps.version.outputs.VERSION }}.jar
+          cp "build/libs/DeathBanPro-${{ steps.version.outputs.VERSION }}.jar" build/release/
 
       - name: Generate Changelog
         uses: orhun/git-cliff-action@v4
@@ -80,7 +82,7 @@ jobs:
           files: build/release/DeathBanPro-*.jar
           body_path: CHANGELOG.md
           draft: false
-          prerelease: ${{ steps.version.outputs.IS_PRERELEASE == '1' || steps.version.outputs.IS_SNAPSHOT == '1' }}
+          prerelease: ${{ steps.version.outputs.IS_PRERELEASE == '1' }}
           name: Release ${{ steps.version.outputs.VERSION }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

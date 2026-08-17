@@ -130,17 +130,16 @@ class DeathBanTabCompleter(
         plugin.server.scheduler.runTaskAsynchronously(
             plugin,
             Runnable {
-                val stored =
-                    dataManager
-                        .getAllStoredPlayers()
-                        .mapNotNull { Bukkit.getOfflinePlayer(it).name }
-                val banned =
-                    banManager
-                        .getActiveBans()
-                        .mapNotNull { Bukkit.getOfflinePlayer(it).name }
+                val storedUuids = dataManager.getAllStoredPlayers()
+                val bannedUuids = banManager.getActiveBans()
 
-                cachedStoredNames = stored
-                cachedBannedNames = banned
+                plugin.server.scheduler.runTask(
+                    plugin,
+                    Runnable {
+                        cachedStoredNames = storedUuids.mapNotNull { Bukkit.getOfflinePlayer(it).name }
+                        cachedBannedNames = bannedUuids.mapNotNull { Bukkit.getOfflinePlayer(it).name }
+                    },
+                )
             },
         )
     }

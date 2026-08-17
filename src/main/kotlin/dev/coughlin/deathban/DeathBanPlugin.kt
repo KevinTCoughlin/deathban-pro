@@ -113,6 +113,7 @@ class DeathBanPlugin : JavaPlugin() {
         // Flush any dirty data still in memory to disk before shutdown
         dataManager.saveAll()
         sharedLivesManager?.saveAll()
+        themeManager.close()
         dataManager.clearCache()
         logger.info("DeathBan Pro disabled")
     }
@@ -123,6 +124,7 @@ class DeathBanPlugin : JavaPlugin() {
         messages.reload()
         themeManager.reload()
         themeManager.setActiveTheme(settings.themeId)
+        dataManager.saveAll()
         dataManager.clearCache()
 
         // Rebuild managers so they pick up the new Settings

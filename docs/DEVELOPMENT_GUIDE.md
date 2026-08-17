@@ -20,7 +20,7 @@ This guide covers building from source, development setup, running tests, and ex
 - **Java**: 21+ (LTS recommended)
 - **Git**: Latest version
 - **Gradle**: 9.0+ (included as wrapper)
-- **Kotlin**: 2.3+ (managed by Gradle)
+- **Kotlin**: Managed by Gradle (no separate installation required)
 
 ### Verify Installation
 
@@ -77,14 +77,12 @@ ls -lh build/libs/
 ```
 build/
 ├── libs/
-│   ├── DeathBanPro-1.0.0.jar          # Production JAR (use this)
-│   ├── DeathBanPro-1.0.0-all.jar      # All dependencies included
-│   └── DeathBanPro-1.0.0-sources.jar  # Source attachment
+│   └── DeathBanPro-1.0.0.jar          # Production JAR (dependencies included)
 ├── classes/
 │   └── kotlin/main/                   # Compiled Kotlin classes
 └── reports/
     ├── tests/                         # Test reports (HTML)
-    └── detekt/                        # Code analysis
+    └── ktlint/                        # Style checks
 ```
 
 ### Installation After Build

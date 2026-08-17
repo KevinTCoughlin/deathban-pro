@@ -21,11 +21,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **getActiveBans() polluting cache** — Active bans scan no longer permanently caches every player file
 - **Corrupted death records aborting entire player load** — Individual death records are now parsed defensively; one bad record no longer loses the whole file
 - **Contribution UUID parsing crash** — SharedLivesManager now uses runCatching for contribution UUID parsing, consistent with member parsing
+- **Out-of-order async persistence** — Player, pending-ban, and shared-lives saves are serialized and stale snapshots can no longer overwrite newer state
+- **Repeated return notifications** — Welcome-back messaging is now shown only when a ban actually expires during login
+- **Unsafe async Bukkit API access** — Tab-completion file scans remain asynchronous while player-name lookups run on the server thread
+- **Invalid configuration values** — Unsafe modes, thresholds, pool sizes, duration values, and ban-duration levels now fail fast with clear errors
+- **Unsafe team and theme IDs** — IDs are validated before use in YAML paths or theme registration
+- **Theme loader cleanup** — Failed loads and plugin shutdown now close external theme classloaders reliably
 
 ### Changed
 
 - Updated plugin.yml usage to include all subcommands (lives, team, theme)
 - Added security warning for external theme JARs in Theme interface docs and README
+- Release builds now embed and verify the requested version and publish only the shaded plugin JAR
+- Release versions are validated as SemVer, with every accepted prerelease form published as a prerelease
 
 ### Technical
 

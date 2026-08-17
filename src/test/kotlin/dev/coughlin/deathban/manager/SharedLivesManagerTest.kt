@@ -127,6 +127,16 @@ class SharedLivesManagerTest {
     }
 
     @Test
+    @DisplayName("createTeamPool rejects IDs unsafe for YAML paths")
+    fun testCreateTeamPoolInvalidId() {
+        val manager = createManager()
+
+        assertNull(manager.createTeamPool("team.with.dots", UUID.randomUUID()))
+        assertNull(manager.createTeamPool("../team", UUID.randomUUID()))
+        assertNull(manager.createTeamPool("a".repeat(33), UUID.randomUUID()))
+    }
+
+    @Test
     @DisplayName("joinPool moves player to new pool")
     fun testJoinPool() {
         val manager = createManager()

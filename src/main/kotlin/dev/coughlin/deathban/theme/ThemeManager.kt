@@ -48,31 +48,41 @@ class ThemeManager(
 
     private fun loadThemeJar(jar: File) {
         val classLoader = URLClassLoader(arrayOf(jar.toURI().toURL()), javaClass.classLoader)
-        externalClassLoaders.add(classLoader)
+        try {
+            val config =
+                classLoader
+                    .getResourceAsStream("theme.yml")
+                    ?.use { stream ->
+                        InputStreamReader(stream).use(YamlConfiguration::loadConfiguration)
+                    }
+                    ?: throw IllegalStateException("theme.yml not found in ${jar.name}")
 
-        // Read theme.yml from JAR
-        val themeYmlStream =
-            classLoader.getResourceAsStream("theme.yml")
-                ?: throw IllegalStateException("theme.yml not found in ${jar.name}")
+            val mainClass =
+                config.getString("main")
+                    ?: throw IllegalStateException("'main' not specified in theme.yml")
 
-        val config = YamlConfiguration.loadConfiguration(InputStreamReader(themeYmlStream))
+            val themeClass = classLoader.loadClass(mainClass)
+            val theme = themeClass.getDeclaredConstructor().newInstance() as Theme
+            require(THEME_ID_PATTERN.matches(theme.id)) {
+                "Theme ID '${theme.id}' must use 1-32 lowercase letters, numbers, underscores, or hyphens"
+            }
+            require(!themes.containsKey(theme.id)) {
+                "Theme ID '${theme.id}' is already registered"
+            }
 
-        val mainClass =
-            config.getString("main")
-                ?: throw IllegalStateException("'main' not specified in theme.yml")
+            val declaredId = config.getString("id")
+            if (declaredId != null && declaredId != theme.id) {
+                logger.warning("Theme ID mismatch in ${jar.name}: yml says '$declaredId', class says '${theme.id}'")
+            }
 
-        val themeClass = classLoader.loadClass(mainClass)
-        val theme = themeClass.getDeclaredConstructor().newInstance() as Theme
-
-        // Validate theme matches theme.yml
-        val declaredId = config.getString("id")
-        if (declaredId != null && declaredId != theme.id) {
-            logger.warning("Theme ID mismatch in ${jar.name}: yml says '$declaredId', class says '${theme.id}'")
+            theme.onLoad()
+            register(theme)
+            externalClassLoaders.add(classLoader)
+            logger.info("Loaded external theme: ${theme.name} v${theme.version} by ${theme.author}")
+        } catch (e: Exception) {
+            runCatching { classLoader.close() }
+            throw e
         }
-
-        register(theme)
-        theme.onLoad()
-        logger.info("Loaded external theme: ${theme.name} v${theme.version} by ${theme.author}")
     }
 
     fun register(theme: Theme) {
@@ -108,6 +118,17 @@ class ThemeManager(
     fun getAvailableThemeIds(): List<String> = themes.keys.toList()
 
     fun reload() {
+        closeExternalThemes()
+        themes.clear()
+        registerBuiltInThemes()
+        loadExternalThemes()
+    }
+
+    fun close() {
+        closeExternalThemes()
+    }
+
+    private fun closeExternalThemes() {
         // Unload external themes
         themes.values
             .filter { it.id !in listOf("default", "halloween") }
@@ -120,9 +141,9 @@ class ThemeManager(
             }
         }
         externalClassLoaders.clear()
+    }
 
-        themes.clear()
-        registerBuiltInThemes()
-        loadExternalThemes()
+    companion object {
+        private val THEME_ID_PATTERN = Regex("[a-z0-9_-]{1,32}")
     }
 }
