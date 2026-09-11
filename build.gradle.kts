@@ -22,7 +22,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:6.1.2")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("io.mockk:mockk:1.14.11")
-    testImplementation("com.tngtech.archunit:archunit-junit5:1.4.2")
+    testImplementation("com.tngtech.archunit:archunit-junit5:1.5.0")
 }
 
 tasks {
