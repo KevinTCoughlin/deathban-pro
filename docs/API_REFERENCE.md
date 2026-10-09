@@ -26,6 +26,8 @@ val dataManager = plugin.dataManager
 val sharedLivesManager = plugin.sharedLivesManager // null in INDIVIDUAL mode
 ```
 
+Call APIs that mutate player or pool state from the Bukkit server thread. Async persistence writes captured snapshots; it does not make mutable manager objects safe to edit concurrently. `preload(uuid)` may run on an asynchronous login thread.
+
 ## DeathListener Event Hooks
 
 The `DeathListener` processes all player death events. Internally it uses these event flow stages:
@@ -83,7 +85,7 @@ Applies an individual ban to a player with escalating duration.
 **Side Effects:**
 
 - Sets `data.currentBan` with calculated duration
-- Saves player data asynchronously
+- Commits a snapshot synchronously before publishing the ban or displaying effects; an I/O failure throws before those consequences
 - Shows title and plays sound/particles based on theme
 - Kicks player after respawn animation
 - Increments total bans counter
@@ -110,6 +112,7 @@ Applies a ban in shared mode when the pool is empty.
 **Side Effects:**
 
 - Creates BanRecord with `sharedLivesEmptyPoolBan` duration
+- Commits the ban synchronously before effects or the scheduled kick
 - Shows theme effects and messages
 - Kicks player after respawn
 
@@ -131,7 +134,7 @@ Removes an active ban for a player.
 
 - Clears `currentBan` from PlayerData
 - Sets `pendingPardon` flag if player offline
-- Saves player data asynchronously
+- Commits the pardon synchronously before updating cached state or returning success
 
 **Example:**
 
@@ -155,6 +158,7 @@ Completely resets a player's death record and offense level.
 - Clears all death records
 - Removes active ban
 - Clears pending pardon flag
+- Commits the reset synchronously before updating cached state or returning success
 
 **Example:**
 
@@ -327,6 +331,8 @@ println("Offense level: ${data.offenseLevel}")
 
 Gets PlayerData or creates empty record if doesn't exist.
 
+The returned object is the live cached instance. Successful synchronous commits preserve that instance so retained references observe subsequent bans, pardons, and resets. Reacquire it after plugin reload or cache clearing; detached snapshots are not live references.
+
 **Parameters:**
 
 - `uuid` - Player UUID
@@ -359,7 +365,7 @@ Synchronously saves PlayerData to disk.
 - Writes YAML file to `plugins/DeathBanPro/players/`
 - Blocks until I/O complete
 
-**Note:** Prefer `saveAsync` for non-blocking saves
+**Note:** Use `save` for critical state that must persist before a consequence. It forces a temporary file and atomically replaces the record, then updates the existing cached instance. Write failures throw. For rollback, edit an independent `data.snapshot()` and commit that candidate; `save` cannot undo mutations a caller already made directly to the live object. `saveAsync` is available for noncritical updates that can tolerate loss before a queued write completes.
 
 **Example:**
 

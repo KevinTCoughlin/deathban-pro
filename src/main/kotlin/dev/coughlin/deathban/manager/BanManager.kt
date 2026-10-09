@@ -40,6 +40,7 @@ class BanManager(
 
         val committed = data.snapshot().also { it.currentBan = ban }
         dataManager.save(committed)
+        data.currentBan = ban
         totalBansIssued.incrementAndGet()
 
         val theme = plugin.themeManager.getActiveTheme()

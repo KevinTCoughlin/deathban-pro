@@ -48,11 +48,24 @@ class PlayerDataManager(
      * Use for critical transitions that must persist before their consequences.
      */
     fun save(data: PlayerData) {
+        val snapshot = data.snapshot()
         val lock = saveLocks.computeIfAbsent(data.uuid) { Any() }
         synchronized(lock) {
             nextRevision(data.uuid)
-            writeToDisk(data.snapshot())
-            cache[data.uuid] = data
+            writeToDisk(snapshot)
+            val cached = cache[data.uuid]
+            if (cached == null) {
+                cache[data.uuid] = data
+            } else {
+                // Keep public get/getOrCreate references live after successful commits.
+                // Update from the independent snapshot, even when cached === data.
+                cached.offenseLevel = snapshot.offenseLevel
+                cached.lastDeathTime = snapshot.lastDeathTime
+                cached.currentBan = snapshot.currentBan
+                cached.pendingPardon = snapshot.pendingPardon
+                cached.deaths.clear()
+                cached.deaths.addAll(snapshot.deaths)
+            }
             dirty.remove(data.uuid)
         }
     }

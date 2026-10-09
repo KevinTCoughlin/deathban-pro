@@ -24,6 +24,7 @@ import java.time.Instant
 import java.util.UUID
 import java.util.logging.Logger
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -72,6 +73,36 @@ class BanManagerTest {
         kick.run()
 
         verify(exactly = 1) { player.kickPlayer(any()) }
+    }
+
+    @Test
+    fun `retained player reference cannot clear committed ban when saved again`() {
+        val retained = dataManager.getOrCreate(player.uniqueId)
+        retained.offenseLevel = 1
+        manager.applyBan(player, retained, "FALL")
+
+        assertTrue(retained.isBanned())
+        dataManager.saveAsync(retained)
+
+        assertTrue(PlayerDataManager(tempDir, Logger.getLogger("ReloadTest")).get(player.uniqueId)!!.isBanned())
+    }
+
+    @Test
+    fun `retained player reference cannot restore pardoned or reset ban`() {
+        every { Bukkit.getPlayer(player.uniqueId) } returns player
+        val retained = dataManager.getOrCreate(player.uniqueId)
+        retained.offenseLevel = 1
+        manager.applyBan(player, retained, "FALL")
+        manager.pardon(player.uniqueId)
+        assertFalse(retained.isBanned())
+        dataManager.saveAsync(retained)
+        assertFalse(PlayerDataManager(tempDir, Logger.getLogger("ReloadTest")).get(player.uniqueId)!!.isBanned())
+
+        manager.applyBan(player, retained, "FALL")
+        manager.reset(player.uniqueId)
+        assertFalse(retained.isBanned())
+        dataManager.saveAsync(retained)
+        assertFalse(PlayerDataManager(tempDir, Logger.getLogger("ReloadTest")).get(player.uniqueId)!!.isBanned())
     }
 
     @Test
