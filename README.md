@@ -131,6 +131,7 @@ Create custom themes by implementing the `Theme` interface and packaging as a JA
 - **[Development Guide](docs/DEVELOPMENT_GUIDE.md)** - Building from source, running tests, IDE setup, and extending the plugin
 - **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)** - Common issues, debug logging, performance tuning, and data recovery
 - **[Configuration Examples](docs/CONFIGURATION_EXAMPLES.md)** - Real-world examples for hardcore mode, survival, PvP, teams, events, and multi-world setups
+- **[Automated Review](docs/AUTOMATED_REVIEW.md)** - detekt checks and OpenAI-backed FOSS PR-Agent activation
 
 ## Building
 
