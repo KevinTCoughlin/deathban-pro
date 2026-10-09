@@ -21,6 +21,8 @@ permissions:
       deathban.check: true
       deathban.check.others: true
       deathban.admin: true
+      deathban.lives.add: true
+      deathban.team.manage: true
       deathban.bypass: true
   deathban.use:
     description: Basic plugin access
@@ -36,4 +38,10 @@ permissions:
     default: op
   deathban.bypass:
     description: Bypass death bans entirely
+    default: op
+  deathban.lives.add:
+    description: Refill shared lives (grant only to trusted players)
+    default: op
+  deathban.team.manage:
+    description: Create teams or change team membership (grant only to trusted players)
     default: op

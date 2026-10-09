@@ -1,14 +1,21 @@
 package dev.coughlin.deathban.data
 
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import org.bukkit.configuration.file.YamlConfiguration
+import org.bukkit.plugin.Plugin
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
+import java.io.IOException
 import java.time.Instant
 import java.util.UUID
 import java.util.logging.Logger
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -20,6 +27,55 @@ class PlayerDataManagerTest {
     private val logger = Logger.getLogger("TestLogger")
 
     private fun createManager(): PlayerDataManager = PlayerDataManager(tempDir, logger)
+
+    @Test
+    fun `critical save cannot be overwritten by an older queued async save`() {
+        lateinit var queued: Runnable
+        val plugin = mockk<Plugin>(relaxed = true)
+        every { plugin.server.scheduler.runTaskAsynchronously(plugin, any<Runnable>()) } answers {
+            queued = secondArg()
+            mockk(relaxed = true)
+        }
+        val manager = PlayerDataManager(tempDir, logger, plugin)
+        val data = manager.getOrCreate(UUID.randomUUID())
+        data.offenseLevel = 1
+        manager.saveAsync(data)
+        val committed = data.snapshot().also { it.offenseLevel = 2 }
+        manager.save(committed)
+
+        queued.run()
+
+        assertEquals(2, createManager().get(data.uuid)!!.offenseLevel)
+    }
+
+    @Test
+    fun `failed critical save preserves cached and persisted previous record`() {
+        val manager = createManager()
+        val previous = PlayerData(UUID.randomUUID(), offenseLevel = 1)
+        manager.save(previous)
+        val candidate = previous.snapshot().also { it.offenseLevel = 2 }
+        mockkObject(AtomicFileWriter)
+        try {
+            every { AtomicFileWriter.write(any(), any()) } throws IOException("Disk unavailable")
+            assertFailsWith<IOException> { manager.save(candidate) }
+        } finally {
+            unmockkObject(AtomicFileWriter)
+        }
+
+        assertEquals(1, manager.get(previous.uuid)!!.offenseLevel)
+        assertEquals(1, createManager().get(previous.uuid)!!.offenseLevel)
+    }
+
+    @Test
+    @DisplayName("active bans include cached records awaiting their first disk write")
+    fun testActiveBansIncludeUnsavedCache() {
+        val manager = createManager()
+        val uuid = UUID.randomUUID()
+        val now = Instant.now()
+        manager.getOrCreate(uuid).currentBan = BanRecord(now, now.plusSeconds(3600), 1, "FALL")
+
+        assertEquals(listOf(uuid), manager.getActiveBans())
+    }
 
     @Test
     @DisplayName("save and load round-trip preserves all fields")

@@ -165,7 +165,7 @@ theme: default
 A: Yes! DeathBan Pro supports both Spigot and Paper 1.21+.
 
 [B]Q: What happens if the server crashes while banning someone?[/B]
-A: Pending bans are persisted to disk immediately. On restart, any interrupted bans will be properly applied.
+A: Critical ban changes are saved with atomic file replacement before consequences are shown. Persisted bans remain enforceable after restart. Keep backups; this is not a hardware power-loss guarantee.
 
 [B]Q: Can I disable bans in certain worlds?[/B]
 A: Yes! Use the [ICODE]disabled-worlds[/ICODE] config option.

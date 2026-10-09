@@ -382,26 +382,22 @@ theme-particles: true
 ### Team Workflow
 
 ```bash
-# Team leader creates team pool
-/deathban team create "Team Alpha"
+# Trusted player with deathban.team.manage creates a team pool
+/deathban team create alpha
 
-# Members join team
-/deathban team join "Team Alpha"
+# Trusted members with deathban.team.manage join the team
+/deathban team join alpha
 
 # Shared pool management
 /deathban lives               # View pool status
-/deathban lives add           # Add 1 life (earned)
+/deathban lives add           # Trusted: requires deathban.lives.add; no built-in earned-life cost
 /deathban lives set 20        # Admin: set exact number
-
-# View team
-/deathban team list           # See all teams (admin)
-/deathban team info "Team Alpha"  # Team details
 
 # Leave team
 /deathban team leave
 
 # Earn lives through events
-# /deathban lives add (can be limited by permission)
+# Grant deathban.lives.add only to trusted players; quest rewards require a separate integration.
 ```
 
 ### Gameplay Example
@@ -418,13 +414,13 @@ Day 1:
 
 Week 1:
   - 50+ more deaths → Team lives: 0/30
-  - Next death → TEAM BANNED for 1 hour
-  - ALL members banned (shared fate)
+  - Next death → dying player banned for 1 hour
+  - Each subsequent death while the pool is empty triggers an individual temporary ban
 
 Earn lives back:
-  - Complete quest → /deathban lives add
+  - Trusted player uses /deathban lives add (quests are not built in)
   - Team lives: 1/30
-  - Members unbanned immediately
+  - Existing bans remain until expiry or an administrator pardon
 ```
 
 ### Configuration Variations

@@ -1,5 +1,6 @@
 package dev.coughlin.deathban.manager
 
+import dev.coughlin.deathban.data.AtomicFileWriter
 import dev.coughlin.deathban.data.SharedLivesPool
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.plugin.Plugin
@@ -29,14 +30,15 @@ class SharedLivesManager(
 
     fun getGlobalPool(): SharedLivesPool = getOrCreatePool(SharedLivesPool.GLOBAL_POOL_ID)
 
-    fun getOrCreatePool(id: String): SharedLivesPool =
-        pools.getOrPut(id) {
-            SharedLivesPool(
-                id = id,
-                lives = defaultLives,
-                maxLives = maxLives,
-            ).also { saveAsync() }
+    fun getOrCreatePool(id: String): SharedLivesPool {
+        pools[id]?.let { return it }
+        require(id == SharedLivesPool.GLOBAL_POOL_ID || isValidTeamId(id)) { "Invalid pool ID: $id" }
+        val pool = SharedLivesPool(id = id, lives = defaultLives, maxLives = maxLives)
+        return commit {
+            pools[id] = pool
+            pool
         }
+    }
 
     fun getPool(id: String): SharedLivesPool? = pools[id]
 
@@ -53,12 +55,12 @@ class SharedLivesManager(
 
     fun consumeLife(uuid: UUID): Boolean {
         val pool = getPoolForPlayer(uuid) ?: getGlobalPool()
-        if (pool.removeLife()) {
-            saveAsync()
-            logger.info("Life consumed from pool '${pool.id}'. Remaining: ${pool.lives}/${pool.maxLives}")
-            return true
+        if (pool.isEmpty()) return false
+        commit {
+            pool.removeLife()
         }
-        return false
+        logger.info("Life consumed from pool '${pool.id}'. Remaining: ${pool.lives}/${pool.maxLives}")
+        return true
     }
 
     fun addLife(
@@ -66,36 +68,31 @@ class SharedLivesManager(
         poolId: String? = null,
     ): Boolean {
         val pool = poolId?.let { getOrCreatePool(it) } ?: getPoolForPlayer(uuid) ?: getGlobalPool()
-        if (pool.addLife(uuid)) {
-            saveAsync()
-            logger.info("Life added to pool '${pool.id}' by $uuid. Total: ${pool.lives}/${pool.maxLives}")
-            return true
+        if (pool.isFull()) return false
+        commit {
+            pool.addLife(uuid)
         }
-        return false
+        logger.info("Life added to pool '${pool.id}' by $uuid. Total: ${pool.lives}/${pool.maxLives}")
+        return true
     }
 
     fun joinPool(
         uuid: UUID,
         poolId: String,
     ): Boolean {
-        // Leave current pool first
-        leavePool(uuid)
-
         val pool = getOrCreatePool(poolId)
-        if (pool.addMember(uuid)) {
-            saveAsync()
-            return true
+        return commit {
+            pools.values.forEach { it.removeMember(uuid) }
+            pool.addMember(uuid)
         }
-        return false
     }
 
     fun leavePool(uuid: UUID): Boolean {
-        val left =
-            pools.values.fold(false) { removed, pool ->
-                pool.removeMember(uuid) || removed
-            }
-        if (left) saveAsync()
-        return left
+        if (pools.values.none { it.isMember(uuid) }) return false
+        return commit {
+            pools.values.forEach { it.removeMember(uuid) }
+            true
+        }
     }
 
     fun createTeamPool(
@@ -105,23 +102,19 @@ class SharedLivesManager(
         if (!isValidTeamId(id)) return null
         if (pools.containsKey(id)) return null
 
-        val pool =
-            SharedLivesPool(
-                id = id,
-                lives = defaultLives,
-                maxLives = maxLives,
-            )
-        pool.addMember(creator)
-        pools[id] = pool
-        saveAsync()
-        return pool
+        return commit {
+            pools.values.forEach { it.removeMember(creator) }
+            val pool = SharedLivesPool(id = id, lives = defaultLives, maxLives = maxLives)
+            pool.addMember(creator)
+            pools[id] = pool
+            pool
+        }
     }
 
     fun deletePool(id: String): Boolean {
         if (id == SharedLivesPool.GLOBAL_POOL_ID) return false
-        val removed = pools.remove(id) != null
-        if (removed) saveAsync()
-        return removed
+        if (!pools.containsKey(id)) return false
+        return commit { pools.remove(id) != null }
     }
 
     fun setLives(
@@ -129,13 +122,38 @@ class SharedLivesManager(
         amount: Int,
     ) {
         val pool = getOrCreatePool(poolId)
-        pool.lives = amount.coerceIn(0, pool.maxLives)
-        pool.lastModified = Instant.now()
+        commit {
+            pool.lives = amount.coerceIn(0, pool.maxLives)
+            pool.lastModified = Instant.now()
+        }
         logger.info("Pool '${pool.id}' lives set to ${pool.lives}/${pool.maxLives}")
-        saveAsync()
     }
 
     fun getAllPools(): List<SharedLivesPool> = pools.values.toList()
+
+    private fun <T> commit(change: () -> T): T {
+        val before = pools.toMap()
+        val snapshots = snapshotPools()
+        try {
+            val result = change()
+            save()
+            return result
+        } catch (e: Exception) {
+            pools.clear()
+            pools.putAll(before)
+            snapshots.forEach { snapshot ->
+                val pool = pools.getValue(snapshot.id)
+                pool.lives = snapshot.lives
+                pool.maxLives = snapshot.maxLives
+                pool.members.clear()
+                pool.members.addAll(snapshot.members)
+                pool.contributions.clear()
+                pool.contributions.putAll(snapshot.contributions)
+                pool.lastModified = snapshot.lastModified
+            }
+            throw e
+        }
+    }
 
     /**
      * Schedule an async write. The in-memory state is always authoritative;
@@ -233,7 +251,7 @@ class SharedLivesManager(
             config.set("${pool.id}.contributions", contribs)
         }
 
-        config.save(poolsFile)
+        AtomicFileWriter.write(poolsFile, config.saveToString())
     }
 
     private fun load() {

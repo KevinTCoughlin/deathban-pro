@@ -33,25 +33,28 @@ class PlayerDataManager(
 
     fun getOrCreate(uuid: UUID): PlayerData = cache.getOrPut(uuid) { load(uuid) ?: PlayerData(uuid) }
 
-    fun get(uuid: UUID): PlayerData? = cache[uuid] ?: load(uuid)?.also { cache[uuid] = it }
+    fun get(uuid: UUID): PlayerData? = cache[uuid] ?: load(uuid)?.let { cache.putIfAbsent(uuid, it) ?: it }
 
     /**
      * Pre-load a player's data into the cache.
      * Safe to call from any thread (e.g. AsyncPlayerPreLoginEvent).
      */
     fun preload(uuid: UUID) {
-        if (cache.containsKey(uuid)) return
-        load(uuid)?.let { cache[uuid] = it }
+        get(uuid)
     }
 
     /**
      * Synchronous save — writes player data to disk immediately.
-     * Use [saveAsync] instead when calling from the main thread.
+     * Use for critical transitions that must persist before their consequences.
      */
     fun save(data: PlayerData) {
-        cache[data.uuid] = data
-        val revision = nextRevision(data.uuid)
-        persistSnapshot(data.uuid, revision, data.snapshot())
+        val lock = saveLocks.computeIfAbsent(data.uuid) { Any() }
+        synchronized(lock) {
+            nextRevision(data.uuid)
+            writeToDisk(data.snapshot())
+            cache[data.uuid] = data
+            dirty.remove(data.uuid)
+        }
     }
 
     /**
@@ -158,7 +161,7 @@ class PlayerDataManager(
             }
         config.set("deaths", deathsList)
 
-        config.save(file)
+        AtomicFileWriter.write(file, config.saveToString())
     }
 
     private fun load(uuid: UUID): PlayerData? {
@@ -234,13 +237,13 @@ class PlayerDataManager(
             } ?: emptyList()
 
     fun getActiveBans(): List<UUID> =
-        getAllStoredPlayers().filter { uuid ->
+        (getAllStoredPlayers() + cache.keys).distinct().filter { uuid ->
             // Use load() directly without polluting the cache
             val data = cache[uuid] ?: load(uuid)
             data?.isBanned() == true
         }
 
-    // Pending bans (crash recovery)
+    // Legacy UUID-only markers: retained for compatibility, not a recovery journal.
     fun addPendingBan(uuid: UUID) {
         if (pendingBans.add(uuid)) savePendingBansAsync()
     }
@@ -285,7 +288,7 @@ class PlayerDataManager(
     private fun writePendingBans(uuids: List<UUID>) {
         val config = YamlConfiguration()
         config.set("pending", uuids.map { it.toString() })
-        config.save(pendingBansFile)
+        AtomicFileWriter.write(pendingBansFile, config.saveToString())
     }
 
     private fun loadPendingBans() {
@@ -297,7 +300,7 @@ class PlayerDataManager(
             .forEach { pendingBans.add(it) }
 
         if (pendingBans.isNotEmpty()) {
-            logger.warning("Recovered ${pendingBans.size} pending bans from previous session")
+            logger.warning("Found ${pendingBans.size} legacy pending-ban marker(s); only already persisted bans can be recovered")
         }
     }
 
