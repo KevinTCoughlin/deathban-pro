@@ -35,31 +35,16 @@ tasks {
         archiveClassifier.set("")
         relocate("org.bstats", "dev.coughlin.deathban.metrics.bstats")
 
-        // Exclude unused Kotlin packages to reduce JAR size
-        // Note: Keep kotlin/enums (needed for enum support)
-        exclude("kotlin/coroutines/**")
-        exclude("kotlin/streams/**")
-        exclude("kotlin/js/**")
-        exclude("kotlin/time/**")
-        exclude("kotlin/random/**")
-        exclude("kotlin/concurrent/**")
-        exclude("kotlin/contracts/**")
-        exclude("kotlin/experimental/**")
-        exclude("kotlin/properties/**")
-        exclude("kotlin/system/**")
-        exclude("kotlin/math/**")
-        exclude("kotlin/sequences/**")
-        exclude("kotlin/io/**")
-        exclude("kotlin/reflect/**")
-        exclude("kotlin/jdk7/**")
         exclude("DebugProbesKt.bin")
-        exclude("META-INF/versions/**")
         exclude("META-INF/*.kotlin_module")
         exclude("META-INF/maven/**")
 
         minimize {
             // Keep bStats classes as they're loaded via reflection
             exclude(dependency("org.bstats:.*"))
+            // Kotlin runtime helpers and external themes can reference classes
+            // that static minimization cannot safely discover.
+            exclude(dependency("org.jetbrains.kotlin:kotlin-stdlib.*"))
         }
     }
 
@@ -74,6 +59,15 @@ tasks {
     }
 
     test {
+        dependsOn(shadowJar)
+        systemProperty(
+            "deathban.shadowJar",
+            shadowJar
+                .get()
+                .archiveFile
+                .get()
+                .asFile.absolutePath,
+        )
         useJUnitPlatform()
         finalizedBy(jacocoTestReport)
     }

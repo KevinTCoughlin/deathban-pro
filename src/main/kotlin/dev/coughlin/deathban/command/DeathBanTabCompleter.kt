@@ -74,9 +74,18 @@ class DeathBanTabCompleter(
                     emptyList()
                 }
 
-            "lives" -> listOf("add", "set")
+            "lives" ->
+                buildList {
+                    if (sender.hasPermission("deathban.use") && sender.hasPermission("deathban.lives.add")) add("add")
+                    if (sender.hasPermission("deathban.use") && sender.hasPermission("deathban.admin")) add("set")
+                }
 
-            "team" -> listOf("create", "join", "leave")
+            "team" ->
+                if (sender.hasPermission("deathban.use") && sender.hasPermission("deathban.team.manage")) {
+                    listOf("create", "join", "leave")
+                } else {
+                    emptyList()
+                }
 
             "theme" ->
                 buildList {

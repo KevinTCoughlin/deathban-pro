@@ -38,9 +38,9 @@ class BanManager(
                 deathCause = deathCause,
             )
 
+        val committed = data.snapshot().also { it.currentBan = ban }
+        dataManager.save(committed)
         data.currentBan = ban
-        dataManager.saveAsync(data)
-        dataManager.removePendingBan(player.uniqueId)
         totalBansIssued.incrementAndGet()
 
         val theme = plugin.themeManager.getActiveTheme()
@@ -81,7 +81,7 @@ class BanManager(
         Bukkit.getScheduler().runTaskLater(
             plugin,
             Runnable {
-                if (player.isOnline) {
+                if (player.isOnline && dataManager.get(player.uniqueId)?.let { it.currentBan == ban && it.isBanned() } == true) {
                     player.kickPlayer(theme.getKickMessage(context))
                 }
             },
@@ -107,8 +107,8 @@ class BanManager(
             )
 
         val data = dataManager.getOrCreate(player.uniqueId)
-        data.currentBan = ban
-        dataManager.saveAsync(data)
+        val committed = data.snapshot().also { it.currentBan = ban }
+        dataManager.save(committed)
         totalBansIssued.incrementAndGet()
 
         val theme = plugin.themeManager.getActiveTheme()
@@ -154,7 +154,7 @@ class BanManager(
         Bukkit.getScheduler().runTaskLater(
             plugin,
             Runnable {
-                if (player.isOnline) {
+                if (player.isOnline && dataManager.get(player.uniqueId)?.let { it.currentBan == ban && it.isBanned() } == true) {
                     player.kickPlayer(theme.getKickMessage(context))
                 }
             },
@@ -168,28 +168,29 @@ class BanManager(
         val data = dataManager.get(uuid) ?: return false
         if (!data.isBanned()) return false
 
-        data.currentBan = null
+        val committed = data.snapshot().also { it.currentBan = null }
 
         // If player is offline, mark for notification on join
         val player = Bukkit.getPlayer(uuid)
         if (player == null) {
-            data.pendingPardon = true
+            committed.pendingPardon = true
         }
 
-        dataManager.saveAsync(data)
+        dataManager.save(committed)
         return true
     }
 
     fun reset(uuid: UUID): Boolean {
         val data = dataManager.get(uuid) ?: return false
 
-        data.offenseLevel = 0
-        data.deaths.clear()
-        data.currentBan = null
-        data.lastDeathTime = null
-        data.pendingPardon = false
+        val committed = data.snapshot()
+        committed.offenseLevel = 0
+        committed.deaths.clear()
+        committed.currentBan = null
+        committed.lastDeathTime = null
+        committed.pendingPardon = false
 
-        dataManager.saveAsync(data)
+        dataManager.save(committed)
         return true
     }
 

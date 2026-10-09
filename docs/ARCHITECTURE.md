@@ -603,23 +603,13 @@ dataManager.saveAsync(data)
 
 **Problem:** Server crash during async write → data loss
 
-**Solution:** Pending bans set
+**Current behavior:** Deaths, bans, pardons, resets and shared-pool mutations are committed synchronously before their consequences are shown. YAML is serialized to a sibling temporary file, its contents are forced to storage, and the file atomically replaces the destination. The cache is published after a successful critical write. Legacy pending UUIDs remain readable for best-effort compatibility; new deaths no longer depend on a UUID-only journal.
 
 ```kotlin
-// When death processed:
-dataManager.addPendingBan(player.uuid)
-
-// Ban applied:
+// Ban applied (synchronous snapshot commit before scheduling the kick):
 banManager.applyBan(player, data, cause)
-// (saves async)
-
-// Server crashes before write...
-
-// Server restarts:
-processPendingBans()
-// Checks all pending bans
-// If player online & banned: kick them
-// Clear pending flag
+// On restart, normal login enforcement reads the persisted ban.
+// A failed commit throws before title/kick or success acknowledgement.
 ```
 
 ### Data Loading
@@ -648,12 +638,11 @@ clearCache():
 
 ### Persistence Guarantees
 
-**Strong Guarantees:**
+**Orderly shutdown behavior:**
 
-- Death records never lost (written before response)
-- Bans never lost (written before kick)
-- Shutdown flushes all pending writes
-- All operations serialized per player
+- Critical death, ban and pool changes commit before cache publication and user consequences.
+- Shutdown attempts to flush dirty records synchronously; disk errors can still prevent persistence.
+- Per-player write locks and revisions prevent stale queued snapshots from overwriting newer snapshots.
 
 **Eventual Consistency:**
 
@@ -663,9 +652,9 @@ clearCache():
 
 **Atomicity:**
 
-- Per-file (full PlayerData written atomically)
-- If write fails, previous version unchanged
-- No partial record corruption
+- Each YAML record uses a forced temporary file and atomic replacement; unsupported atomic moves fail without falling back to truncation.
+- This is per-file atomicity, not a multi-file transaction or a hardware power-loss guarantee. Portable directory fsync is not provided; keep backups.
+- Critical writes run on the server thread. Slow disks can increase tick latency; measure this before a high-population deployment.
 
 ## Concurrency & Thread Safety
 

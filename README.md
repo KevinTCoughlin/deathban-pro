@@ -8,7 +8,7 @@
 
 Hardcore-style death penalties for Minecraft servers. When players die, they receive temporary bans that escalate with repeated deaths.
 
-🌐 **[View Landing Page](https://kevintcoughlin.github.io/deathban-pro/)** (coming soon after setup)
+🌐 **[View Landing Page](https://kevintcoughlin.com/deathban-pro/)**
 
 ## Features
 
@@ -28,7 +28,7 @@ Hardcore-style death penalties for Minecraft servers. When players die, they rec
 
 ## Installation
 
-1. Download the latest release
+1. Download a JAR from [GitHub Releases](https://github.com/KevinTCoughlin/deathban-pro/releases) (currently prerelease builds; test on a staging server first)
 2. Place `DeathBanPro.jar` in your `plugins` folder
 3. Restart your server
 4. Edit `plugins/DeathBanPro/config.yml` to customize
@@ -41,11 +41,11 @@ Hardcore-style death penalties for Minecraft servers. When players die, they rec
 | `/deathban` | Show help | `deathban.use` |
 | `/deathban check [player]` | Check ban status | `deathban.check` / `deathban.check.others` |
 | `/deathban lives` | Check shared lives pool | `deathban.use` |
-| `/deathban lives add` | Add a life to the pool | `deathban.use` |
+| `/deathban lives add` | Add a life to the pool | `deathban.lives.add` |
 | `/deathban lives set <n>` | Set pool lives (admin) | `deathban.admin` |
-| `/deathban team create <name>` | Create a team pool | `deathban.use` |
-| `/deathban team join <name>` | Join a team pool | `deathban.use` |
-| `/deathban team leave` | Leave your team pool | `deathban.use` |
+| `/deathban team create <name>` | Create a team pool | `deathban.team.manage` |
+| `/deathban team join <name>` | Join a team pool | `deathban.team.manage` |
+| `/deathban team leave` | Leave your team pool | `deathban.team.manage` |
 | `/deathban reset <player>` | Reset offense data | `deathban.admin` |
 | `/deathban pardon <player>` | Remove active ban | `deathban.admin` |
 | `/deathban reload` | Reload configuration | `deathban.admin` |
@@ -60,7 +60,13 @@ Team names must be 1–32 characters and may contain lowercase letters, numbers,
 | `deathban.check` | Check own status | true |
 | `deathban.check.others` | Check other players | op |
 | `deathban.admin` | Admin commands | op |
+| `deathban.lives.add` | Refill shared life pools | op |
+| `deathban.team.manage` | Create teams or change membership | op |
 | `deathban.bypass` | Never get banned | op |
+
+### Shared-life permission migration
+
+Refilling lives and creating, joining, or leaving teams now require dedicated permissions in addition to `deathban.use`. They default to operators to prevent ordinary players from bypassing scarcity by refilling lives or moving to fresh pools. Grant `deathban.lives.add` and `deathban.team.manage` only to trusted players. Granting them broadly restores the previous unrestricted behavior; there is no earned-life cost or team-switch cooldown yet.
 
 ## Configuration
 

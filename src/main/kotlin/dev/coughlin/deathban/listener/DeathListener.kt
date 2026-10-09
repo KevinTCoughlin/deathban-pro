@@ -86,9 +86,7 @@ class DeathListener(
         event: PlayerDeathEvent,
         deathCause: String,
     ) {
-        dataManager.addPendingBan(player.uniqueId)
-
-        val data = dataManager.getOrCreate(player.uniqueId)
+        val data = dataManager.getOrCreate(player.uniqueId).snapshot()
 
         // Check for offense reset before processing
         if (offenseManager.checkOffenseReset(data)) {
@@ -119,9 +117,8 @@ class DeathListener(
             data.offenseLevel++
             banManager.applyBan(player, data, deathCause)
         } else {
-            // Save data and clear pending
-            dataManager.saveAsync(data)
-            dataManager.removePendingBan(player.uniqueId)
+            // Persist the death before displaying the resulting remaining lives.
+            dataManager.save(data)
 
             // Warn player about remaining lives
             val remaining = offenseManager.getRemainingLives(data)
@@ -154,8 +151,8 @@ class DeathListener(
             debug("Shared life consumed for ${player.name}. Pool: ${pool.lives}/${pool.maxLives}")
         } else {
             // Pool is empty - apply ban
-            player.sendMessage(messages.getPoolEmpty())
             banManager.applySharedBan(player, deathCause)
+            player.sendMessage(messages.getPoolEmpty())
             debug("Shared pool empty - banning ${player.name}")
         }
     }

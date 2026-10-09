@@ -6,6 +6,7 @@ import dev.coughlin.deathban.data.PlayerDataManager
 import dev.coughlin.deathban.manager.BanManager
 import dev.coughlin.deathban.manager.OffenseManager
 import dev.coughlin.deathban.manager.SharedLivesManager
+import dev.coughlin.deathban.util.ColorUtil
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
@@ -217,6 +218,10 @@ class DeathBanCommand(
 
         when (args[1].lowercase()) {
             "add" -> {
+                if (!sender.hasPermission("deathban.lives.add")) {
+                    sender.sendMessage(messages.getNoPermission())
+                    return true
+                }
                 if (sender !is Player) {
                     sender.sendMessage(messages.get("errors.console-only-player"))
                     return true
@@ -264,6 +269,11 @@ class DeathBanCommand(
         }
 
         if (!sender.hasPermission("deathban.use")) {
+            sender.sendMessage(messages.getNoPermission())
+            return true
+        }
+
+        if (!sender.hasPermission("deathban.team.manage")) {
             sender.sendMessage(messages.getNoPermission())
             return true
         }
@@ -354,7 +364,7 @@ class DeathBanCommand(
                 val themes = themeManager.getAllThemes()
                 sender.sendMessage(messages.prefixed("theme.list-header"))
                 themes.forEach { theme ->
-                    val active = if (theme.id == themeManager.getActiveThemeId()) " &a(active)" else ""
+                    val active = if (theme.id == themeManager.getActiveThemeId()) ColorUtil.colorize(" &a(active)") else ""
                     sender.sendMessage(
                         messages.get(
                             "theme.list-item",

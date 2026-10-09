@@ -48,7 +48,9 @@ class DeathBanPlugin : JavaPlugin() {
     override fun onEnable() {
         // Save default configs
         saveDefaultConfig()
-        saveResource("messages.yml", false)
+        if (!File(dataFolder, "messages.yml").exists()) {
+            saveResource("messages.yml", false)
+        }
 
         // Initialize configuration
         settings = Settings(config)
@@ -105,7 +107,8 @@ class DeathBanPlugin : JavaPlugin() {
             logger.info("Rolling window: ${if (settings.rollingWindowEnabled) "enabled" else "disabled"}")
             logger.info("Max deaths before ban: ${settings.maxDeathsInWindow}")
         } else {
-            logger.info("Shared lives: ${settings.sharedLivesDefault}/${settings.sharedLivesMax}")
+            val pool = sharedLivesManager!!.getGlobalPool()
+            logger.info("Shared lives: ${pool.lives}/${pool.maxLives}")
         }
     }
 

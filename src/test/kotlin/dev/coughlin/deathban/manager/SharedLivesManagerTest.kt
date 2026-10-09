@@ -5,9 +5,11 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
+import java.io.IOException
 import java.util.UUID
 import java.util.logging.Logger
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -24,6 +26,51 @@ class SharedLivesManagerTest {
         defaultLives: Int = 10,
         maxLives: Int = 20,
     ): SharedLivesManager = SharedLivesManager(tempDir, logger, defaultLives, maxLives)
+
+    @Test
+    fun `failed pool write restores lives contributions and team membership`() {
+        val manager = createManager()
+        val player = UUID.randomUUID()
+        val original = manager.createTeamPool("original", player)!!
+        val target = File(tempDir, "shared-lives.yml")
+        target.delete()
+        target.mkdir()
+        File(target, "sentinel").writeText("keep")
+
+        assertFailsWith<IOException> { manager.consumeLife(player) }
+        assertEquals(10, original.lives)
+        assertFailsWith<IOException> { manager.addLife(player) }
+        assertEquals(10, original.lives)
+        assertEquals(0, original.getContribution(player))
+        assertFailsWith<IOException> { manager.createTeamPool("new", player) }
+        assertNull(manager.getPool("new"))
+        assertTrue(original.isMember(player))
+        assertEquals("original", manager.getPoolForPlayer(player)!!.id)
+    }
+
+    @Test
+    @DisplayName("new pool is persisted immediately without a later mutation")
+    fun testNewPoolPersists() {
+        val manager = createManager()
+        manager.getOrCreatePool("new-team")
+
+        assertNotNull(createManager().getPool("new-team"))
+    }
+
+    @Test
+    @DisplayName("creating a new team removes creator from earlier pools and persists the move")
+    fun testCreateTeamMovesCreator() {
+        val manager = createManager()
+        val creator = UUID.randomUUID()
+        manager.createTeamPool("first", creator)
+        manager.createTeamPool("second", creator)
+
+        val reloaded = createManager()
+        assertFalse(reloaded.getPool("first")!!.isMember(creator))
+        assertEquals("second", reloaded.getPoolForPlayer(creator)!!.id)
+        assertTrue(reloaded.leavePool(creator))
+        assertNull(reloaded.getPoolForPlayer(creator))
+    }
 
     @Test
     @DisplayName("initializes with global pool")

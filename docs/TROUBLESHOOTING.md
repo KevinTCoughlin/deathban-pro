@@ -750,7 +750,7 @@ cp -r plugins/DeathBanPro plugins/DeathBanPro.backup-$(date +%s)
 
 ### Q: What happens if server crashes during a ban?
 
-**A:** Ban is still applied on next startup (via pending bans recovery).
+**A:** Critical changes are committed through forced temporary files and atomic replacement before consequences are shown. Persisted bans remain enforceable on restart. This does not guarantee hardware power-loss durability or multi-file transactions; keep backups and use an orderly shutdown where possible. Legacy pending UUIDs cannot reconstruct a missing ban.
 
 ### Q: Can I exclude admins from bans?
 
