@@ -43,6 +43,7 @@ class DeathBanPlugin : JavaPlugin() {
         private set
 
     private lateinit var joinListener: JoinListener
+    private var unregisterExpansion: (() -> Unit)? = null
     private var updateNotification: String? = null
 
     override fun onEnable() {
@@ -87,6 +88,21 @@ class DeathBanPlugin : JavaPlugin() {
         // Register commands
         registerCommands()
 
+        if (server.pluginManager.isPluginEnabled("PlaceholderAPI")) {
+            val expansion =
+                Class
+                    .forName("dev.coughlin.deathban.integration.DeathBanExpansion")
+                    .getConstructor(DeathBanPlugin::class.java)
+                    .newInstance(this)
+            val registered = expansion.javaClass.getMethod("register").invoke(expansion) as Boolean
+            if (registered) {
+                unregisterExpansion = { expansion.javaClass.getMethod("unregister").invoke(expansion) }
+                logger.info("PlaceholderAPI expansion registered")
+            } else {
+                logger.warning("Could not register PlaceholderAPI expansion")
+            }
+        }
+
         // Initialize metrics
         if (settings.metrics) {
             initializeMetrics()
@@ -113,6 +129,8 @@ class DeathBanPlugin : JavaPlugin() {
     }
 
     override fun onDisable() {
+        unregisterExpansion?.invoke()
+        unregisterExpansion = null
         // Flush any dirty data still in memory to disk before shutdown
         dataManager.saveAll()
         sharedLivesManager?.saveAll()

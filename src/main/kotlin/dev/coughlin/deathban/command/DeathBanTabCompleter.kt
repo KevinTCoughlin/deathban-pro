@@ -42,6 +42,7 @@ class DeathBanTabCompleter(
                 add("theme")
             }
             if (sender.hasPermission("deathban.admin")) {
+                add("history")
                 add("reset")
                 add("pardon")
                 add("reload")
@@ -60,7 +61,7 @@ class DeathBanTabCompleter(
                     emptyList()
                 }
 
-            "reset" ->
+            "reset", "history" ->
                 if (sender.hasPermission("deathban.admin")) {
                     getOnlinePlayerNames() + getStoredPlayerNames()
                 } else {

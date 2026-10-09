@@ -1,6 +1,7 @@
 name: DeathBanPro
 version: ${version}
 main: dev.coughlin.deathban.DeathBanPlugin
+softdepend: [PlaceholderAPI]
 api-version: '1.21'
 description: Hardcore-style death penalties with escalating bans
 author: kevintcoughlin
@@ -9,7 +10,7 @@ website: https://github.com/kevintcoughlin/deathban-pro
 commands:
   deathban:
     description: DeathBan Pro main command
-    usage: /<command> [help|check|reset|pardon|lives|team|theme|reload] ...
+    usage: /<command> [help|check|history|reset|pardon|lives|team|theme|reload] ...
     aliases: [db, dban]
 
 permissions:

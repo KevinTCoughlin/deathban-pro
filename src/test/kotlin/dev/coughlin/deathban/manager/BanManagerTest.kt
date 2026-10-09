@@ -65,6 +65,28 @@ class BanManagerTest {
     }
 
     @Test
+    fun `ban pardon and reset history commits together and survives restart`() {
+        every { Bukkit.getPlayer(player.uniqueId) } returns player
+        val data = dataManager.getOrCreate(player.uniqueId)
+        data.offenseLevel = 1
+        manager.applyBan(player, data, "FALL")
+        manager.pardon(player.uniqueId, "Moderator")
+        manager.reset(player.uniqueId, "Owner")
+        val reloaded = PlayerDataManager(tempDir, Logger.getAnonymousLogger()).get(player.uniqueId)!!
+        kotlin.test.assertEquals(listOf("BANNED", "PARDONED", "RESET"), reloaded.history.map { it.action })
+        kotlin.test.assertEquals(
+            "FALL",
+            reloaded.history
+                .first()
+                .ban!!
+                .deathCause,
+        )
+        kotlin.test.assertEquals("Moderator", reloaded.history[1].actor)
+        kotlin.test.assertEquals("Owner", reloaded.history[2].actor)
+        assertNull(reloaded.currentBan)
+    }
+
+    @Test
     fun `active individual ban kicks after delay`() {
         val data = dataManager.getOrCreate(player.uniqueId)
         data.offenseLevel = 1

@@ -101,6 +101,26 @@ offense-reset:
   clean-period: 168h  # 7 days
 ```
 
+## Ban history
+
+Use `/deathban history <player> [page]` with `deathban.admin` to see the latest 100 events, newest first, ten per page. Ban, expiry, pardon, and reset events survive restarts and offense resets. Records include the original cause, duration, offense level, shared pool, and administrator name when available. Expirations are recorded when login, history lookup, or a later ban/reset discovers them, using the original expiry time. Earlier events removed by older versions cannot be reconstructed.
+
+## Optional scoreboards with PlaceholderAPI
+
+Install a PlaceholderAPI version compatible with your Minecraft server alongside DeathBan Pro and restart (26.2 requires PlaceholderAPI 2.12.3 or later). The built-in expansion registers automatically; no eCloud download is needed. Use these placeholders in compatible scoreboards, menus, or chat plugins:
+
+| Placeholder | Value |
+|---|---|
+| `%deathban_remaining_lives%` | Individual remaining lives or the player's shared pool lives |
+| `%deathban_offense_level%` | Current offense level |
+| `%deathban_ban_remaining%` | Formatted remaining ban duration |
+| `%deathban_ban_remaining_seconds%` | Remaining whole seconds, minimum zero |
+| `%deathban_team%` | Team name, or `none` |
+| `%deathban_pool_lives%` | Shared pool lives, or zero in individual mode |
+| `%deathban_pool_max_lives%` | Shared pool capacity, or zero in individual mode |
+
+Callbacks run on the server thread and use cached player data without file reads. Unknown placeholders, missing player context, and asynchronous requests remain unresolved. Uncached players use initial values; offline historical lookups should use `/deathban history` or `/deathban check`. Reloading DeathBan Pro updates the expansion's settings automatically; reloading PlaceholderAPI keeps it registered.
+
 ## Themes
 
 DeathBan Pro includes a theme system for customizing the visual and audio experience:

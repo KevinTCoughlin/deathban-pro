@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#111814">
-  <meta name="description" content="Make every life count. DeathBan Pro adds configurable temporary death bans, escalating penalties, and shared team lives to Minecraft Spigot and Paper servers.">
+  <meta name="description" content="Free and open source Minecraft survival plugin for Spigot and Paper. Set temporary death bans, share team lives, check ban history, and show lives on your scoreboard.">
   <meta property="og:title" content="DeathBan Pro — Make every life count">
-  <meta property="og:description" content="Hardcore stakes. Another chance. Configurable death penalties for your Minecraft server.">
+  <meta property="og:description" content="Make survival matter with temporary bans and shared team lives. Free and open source, under the MIT license.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://kevintcoughlin.com/deathban-pro/">
   <link rel="canonical" href="https://kevintcoughlin.com/deathban-pro/">
@@ -26,12 +26,13 @@
     <section class="hero" aria-labelledby="hero-title">
       <div class="wrap hero-grid">
         <div class="hero-copy">
-          <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span> MINECRAFT SERVER PLUGIN</p>
+          <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span> FREE &amp; OPEN SOURCE · MINECRAFT PLUGIN</p>
           <h1 id="hero-title">Make every<br>life <span>count.</span></h1>
           <p class="hero-lead">Hardcore stakes. Another chance.</p>
-          <p class="hero-description">Turn death into a meaningful consequence. Set temporary bans that escalate with repeated deaths, or bring your team together around a shared pool of lives.</p>
+          <p class="hero-description">Give your SMP or friend group a survival challenge. Lose too many lives and take a short break. Play solo or share lives with your team. You pick the rules.</p>
           <div class="actions"><a class="button primary" href="https://github.com/KevinTCoughlin/deathban-pro/releases">Get DeathBan Pro <span aria-hidden="true">↓</span></a><a class="button secondary" href="https://github.com/KevinTCoughlin/deathban-pro#readme">Read the docs <span aria-hidden="true">↗</span></a></div>
-          <p class="compatibility">Spigot &amp; Paper 1.21+ <span aria-hidden="true">/</span> Java 21+ <span aria-hidden="true">/</span> Open source · MIT · Alpha</p>
+          <p class="compatibility">Spigot &amp; Paper 1.21+ <span aria-hidden="true">/</span> Java 21+ <span aria-hidden="true">/</span> Alpha</p>
+          <p class="free-note">Free to use, change, and share. <a href="#open-source">What open source means for you ↓</a></p>
         </div>
         <div class="scenario" aria-label="Example of the default individual mode: three deaths in 24 hours trigger a one-hour ban">
           <div class="scenario-top"><span class="eyebrow">THE STAKES, AT A GLANCE</span><span class="mode-label">Individual mode</span></div>
@@ -43,14 +44,16 @@
         </div>
       </div>
     </section>
-    <div class="principles"><div class="wrap"><span>Temporary bans</span><span>Escalating consequences</span><span>Shared team lives</span><span>Your server. Your rules.</span></div></div>
+    <div class="principles"><div class="wrap"><span>Temporary bans</span><span>Shared team lives</span><span>Free &amp; open source</span><span>Your server. Your rules.</span></div></div>
     <section id="features" class="section features-section" aria-labelledby="features-title">
       <div class="wrap">
         <div class="section-heading"><p class="eyebrow">MORE TENSION. MORE TEAMWORK.</p><h2 id="features-title">Give survival a reason.</h2><p>For an SMP with real stakes, a team challenge, or your next seasonal event. Start with the defaults and make it your own.</p></div>
         <div class="feature-grid">
-          <article class="feature"><span class="feature-number">01 / SURVIVAL</span><h3>A fresh chance, <br>with consequences.</h3><p>A rolling death window tracks recent deaths. Hit the threshold and take a break; repeat offenses bring longer bans.</p><div class="penalties" aria-label="Default ban durations by offense"><span>1h</span><span>6h</span><span>24h</span><span>72h</span><span>168h</span></div><p class="detail">Default escalation · fully configurable</p></article>
+          <article class="feature"><span class="feature-number">01 / SURVIVAL</span><h3>Die. Learn. <br>Try again.</h3><p>Too many deaths in a set time means a temporary ban. Keep hitting the limit and the breaks get longer. Even quick deaths after respawning count.</p><div class="penalties" aria-label="Default ban durations for repeated bans"><span>1h</span><span>6h</span><span>24h</span><span>72h</span><span>168h</span></div><p class="detail">Default ban lengths · change them to fit your group</p></article>
           <article class="feature"><span class="feature-number">02 / TEAMWORK</span><h3>Share lives. <br>Share the stakes.</h3><p>Switch to shared mode for a server-wide pool or separate team pools. When a pool runs out, further deaths trigger temporary bans.</p><div class="lives" aria-hidden="true">♥ ♥ ♥ ♥ ♥ <span>♡ ♡ ♡ ♡ ♡</span></div><p class="detail">Server and team pools</p></article>
-          <article class="feature"><span class="feature-number">03 / CONTROL</span><h3>Your community. <br>Your rulebook.</h3><p>Adjust thresholds, durations, messages, and active worlds. Use default or Halloween themes, and reset offense levels after a clean period.</p><div class="rule-tags"><span>World filters</span><span>Custom messages</span><span>Admin controls</span></div><p class="detail">Configure in YAML · reload in game</p></article>
+          <article class="feature"><span class="feature-number">03 / CONTROL</span><h3>Your community. <br>Your rulebook.</h3><p>Choose how many deaths are allowed, how long bans last, and which worlds count. Change player messages or give your event a Halloween theme.</p><div class="rule-tags"><span>Safe lobby worlds</span><span>Custom messages</span><span>Admin controls</span></div><p class="detail">Edit one settings file · reload in game</p></article>
+          <article class="feature"><span class="feature-number">04 / HISTORY</span><h3>Know why <br>someone was banned.</h3><p>Look up a player's recent bans, expired bans, pardons, and resets. See the reason and ban length when a player asks what happened.</p><div class="rule-tags"><span>Admin-only command</span><span>Saved across restarts</span></div><p class="detail">Keeps the latest 100 events per player</p></article>
+          <article class="feature"><span class="feature-number">05 / SCOREBOARDS</span><h3>Keep lives <br>in view.</h3><p>Already use PlaceholderAPI? Show remaining lives, time left on a ban, or team lives in compatible scoreboards and menus.</p><div class="rule-tags"><span>Lives</span><span>Ban timer</span><span>Team pool</span></div><p class="detail">Optional · requires PlaceholderAPI and a compatible display plugin</p></article>
         </div>
       </div>
     </section>
@@ -58,25 +61,27 @@
       <div class="wrap setup-grid">
         <div><p class="eyebrow">FROM DOWNLOAD TO FIRST LIFE</p><h2 id="setup-title">Your next session<br>starts here.</h2><p class="section-description">Bring DeathBan Pro to a Spigot or Paper 1.21+ server running Java 21 or newer.</p><a class="text-link" href="https://github.com/KevinTCoughlin/deathban-pro/releases">Browse releases <span aria-hidden="true">↗</span></a></div>
         <ol class="steps">
-          <li><span class="step-index" aria-hidden="true">1</span><div><h3>Download the plugin</h3><p>Get the plugin JAR from GitHub Releases. Releases are currently alpha; test on a staging server before your next event.</p></div></li>
+          <li><span class="step-index" aria-hidden="true">1</span><div><h3>Choose a download</h3><p>Check GitHub Releases for a plugin file ending in <code>.jar</code>. This project is in alpha, so try it on a test server first. New features on GitHub may arrive before a downloadable release.</p></div></li>
           <li><span class="step-index" aria-hidden="true">2</span><div><h3>Install and restart</h3><p>Place the JAR in your server's <code>plugins/</code> folder, then restart the server.</p></div></li>
-          <li><span class="step-index" aria-hidden="true">3</span><div><h3>Set your rules</h3><p>Edit <code>plugins/DeathBanPro/config.yml</code>. Apply changes with <code>/deathban reload</code>.</p></div></li>
+          <li><span class="step-index" aria-hidden="true">3</span><div><h3>Set your rules</h3><p>Open <code>plugins/DeathBanPro/config.yml</code> to change the settings. Save, then run <code>/deathban reload</code> in game or from your server console.</p></div></li>
         </ol>
       </div>
     </section>
     <section id="commands" class="section commands-section" aria-labelledby="commands-title">
       <div class="wrap commands-grid">
         <div><p class="eyebrow">KEEP THE GAME MOVING</p><h2 id="commands-title">Simple commands.<br>Clear control.</h2><p class="section-description">Players can check their status and shared lives. Admins can pardon, reset, and tune the experience.</p><a class="text-link" href="https://github.com/KevinTCoughlin/deathban-pro#commands">All commands &amp; permissions <span aria-hidden="true">↗</span></a></div>
-        <dl class="command-list"><div><dt><code>/deathban check</code></dt><dd>Check your ban status</dd></div><div><dt><code>/deathban lives</code></dt><dd>View the shared lives pool</dd></div><div><dt><code>/deathban team join &lt;name&gt;</code></dt><dd>Join a team pool · trusted permission</dd></div><div><dt><code>/deathban pardon &lt;player&gt;</code></dt><dd>Remove an active ban · admin</dd></div><div><dt><code>/deathban reload</code></dt><dd>Reload configuration · admin</dd></div></dl>
+        <dl class="command-list"><div><dt><code>/deathban check</code></dt><dd>Check your ban status</dd></div><div><dt><code>/deathban lives</code></dt><dd>See how many shared lives are left</dd></div><div><dt><code>/deathban history &lt;player&gt; [page]</code></dt><dd>See recent bans and admin actions · admin only · page is optional</dd></div><div><dt><code>/deathban pardon &lt;player&gt;</code></dt><dd>Let a banned player back in · admin only</dd></div><div><dt><code>/deathban reload</code></dt><dd>Apply saved settings · admin only</dd></div></dl>
       </div>
     </section>
     <section class="section faq-section" aria-labelledby="faq-title"><div class="wrap faq-grid"><div><p class="eyebrow">BEFORE YOU START</p><h2 id="faq-title">Good to know.</h2></div><div class="faq-list">
-      <details><summary>Does this permanently ban players?</summary><p>DeathBan Pro applies temporary bans. In individual mode, ban durations increase by offense level according to your configuration. In shared mode, the empty-pool ban duration is configurable.</p></details>
+      <details><summary>Does this permanently ban players?</summary><p>No. Players can come back when their timer ends. You choose how long bans last. Admins can also use the pardon command to let someone back in early.</p></details>
+      <details><summary>Can I show lives on my scoreboard?</summary><p>Yes, with PlaceholderAPI and a scoreboard or menu plugin that supports it. Use <code>%deathban_remaining_lives%</code> for individual lives, <code>%deathban_pool_lives%</code> for shared lives, or <code>%deathban_ban_remaining%</code> for time left on a ban. See the <a href="https://github.com/KevinTCoughlin/deathban-pro#readme">docs for the full list</a>. DeathBan Pro works without PlaceholderAPI too.</p></details>
       <details><summary>Can I protect a lobby or creative world?</summary><p>Yes. Configure <code>enabled-worlds</code> and <code>disabled-worlds</code> to control where deaths count. The default configuration excludes <code>world_lobby</code>.</p></details>
       <details><summary>What about admins and player permissions?</summary><p>The default <code>deathban.bypass</code> permission is granted to operators. Admin commands use <code>deathban.admin</code>. Review the permission defaults before testing or opening your server to players.</p></details>
       <details><summary>Where can I get help or report a problem?</summary><p>Start with the <a href="https://github.com/KevinTCoughlin/deathban-pro/blob/main/docs/TROUBLESHOOTING.md">troubleshooting guide</a>, or <a href="https://github.com/KevinTCoughlin/deathban-pro/issues">open an issue on GitHub</a> with your server version and relevant logs.</p></details>
     </div></div></section>
-    <section class="final-cta" aria-labelledby="cta-title"><div class="wrap"><p class="eyebrow">RAISE THE STAKES</p><h2 id="cta-title">A little less reckless.<br>A lot more survival.</h2><a class="button primary" href="https://github.com/KevinTCoughlin/deathban-pro/releases">Get DeathBan Pro <span aria-hidden="true">↓</span></a><p>Open source. Configurable. Built for your server.</p></div></section>
+    <section id="open-source" class="section open-source-section" aria-labelledby="open-source-title"><div class="wrap setup-grid"><div><p class="eyebrow">FOSS: FREE AND OPEN SOURCE SOFTWARE</p><h2 id="open-source-title">“Pro” is the name.<br>Free is the deal.</h2></div><div><p class="section-description">No paid tier. The plugin's code is public, and the MIT license lets you use it, change it, and share your version. Keep the license and copyright notice with copies.</p><p>You don't need to code to take part. Report a bug, suggest a rule for your next SMP, or share what worked for your server.</p><div class="actions"><a class="button secondary" href="https://github.com/KevinTCoughlin/deathban-pro">Explore the source <span aria-hidden="true">↗</span></a><a class="text-link" href="https://github.com/KevinTCoughlin/deathban-pro/issues">Share feedback <span aria-hidden="true">↗</span></a></div></div></div></section>
+    <section class="final-cta" aria-labelledby="cta-title"><div class="wrap"><p class="eyebrow">RAISE THE STAKES</p><h2 id="cta-title">A little less reckless.<br>A lot more survival.</h2><a class="button primary" href="https://github.com/KevinTCoughlin/deathban-pro/releases">Browse downloads <span aria-hidden="true">↓</span></a><p>Free and open source. MIT licensed. Your server, your rules.</p></div></section>
   </main>
   <footer class="footer"><div class="wrap footer-top"><a class="brand" href="#">DeathBan<span class="brand-pro">PRO</span></a><nav aria-label="Footer navigation"><a href="https://github.com/KevinTCoughlin/deathban-pro">Source</a><a href="https://github.com/KevinTCoughlin/deathban-pro/issues">Support</a><a href="https://github.com/KevinTCoughlin/deathban-pro/blob/main/CHANGELOG.md">Changelog</a><a href="https://github.com/KevinTCoughlin/deathban-pro/blob/main/LICENSE">MIT License</a></nav></div><div class="wrap footer-bottom">An independent Minecraft server plugin. Not affiliated with Mojang or Microsoft.</div></footer>
 </body>

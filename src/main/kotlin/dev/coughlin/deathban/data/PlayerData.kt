@@ -11,6 +11,7 @@ data class PlayerData(
     val deaths: MutableList<DeathRecord> = mutableListOf(),
     var currentBan: BanRecord? = null,
     var pendingPardon: Boolean = false,
+    val history: MutableList<HistoryRecord> = mutableListOf(),
 ) {
     fun isBanned(): Boolean {
         val ban = currentBan ?: return false
@@ -20,8 +21,23 @@ data class PlayerData(
     fun clearExpiredBan() {
         val ban = currentBan ?: return
         if (!Instant.now().isBefore(ban.endTime)) {
+            recordHistory("EXPIRED", ban, timestamp = ban.endTime)
             currentBan = null
         }
+    }
+
+    fun recordHistory(
+        action: String,
+        ban: BanRecord? = currentBan,
+        actor: String? = null,
+        timestamp: Instant = Instant.now(),
+    ) {
+        history.add(HistoryRecord(timestamp, action, ban, actor))
+        while (history.size > HISTORY_LIMIT) history.removeAt(0)
+    }
+
+    companion object {
+        const val HISTORY_LIMIT = 100
     }
 
     /**
@@ -36,6 +52,7 @@ data class PlayerData(
             deaths = deaths.toMutableList(),
             currentBan = currentBan,
             pendingPardon = pendingPardon,
+            history = history.toMutableList(),
         )
 }
 
@@ -67,4 +84,5 @@ data class BanRecord(
     val endTime: Instant,
     val offenseLevel: Int,
     val deathCause: String,
+    val poolId: String? = null,
 )

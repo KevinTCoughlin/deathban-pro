@@ -38,7 +38,12 @@ class BanManager(
                 deathCause = deathCause,
             )
 
-        val committed = data.snapshot().also { it.currentBan = ban }
+        val committed =
+            data.snapshot().also {
+                it.clearExpiredBan()
+                it.currentBan = ban
+                it.recordHistory("BANNED", ban)
+            }
         dataManager.save(committed)
         data.currentBan = ban
         totalBansIssued.incrementAndGet()
@@ -103,11 +108,17 @@ class BanManager(
                 startTime = now,
                 endTime = now.plus(duration),
                 offenseLevel = 0, // Not used in shared mode
+                poolId = plugin.sharedLivesManager?.getPoolForPlayer(player.uniqueId)?.id ?: "global",
                 deathCause = deathCause,
             )
 
         val data = dataManager.getOrCreate(player.uniqueId)
-        val committed = data.snapshot().also { it.currentBan = ban }
+        val committed =
+            data.snapshot().also {
+                it.clearExpiredBan()
+                it.currentBan = ban
+                it.recordHistory("BANNED", ban)
+            }
         dataManager.save(committed)
         totalBansIssued.incrementAndGet()
 
@@ -164,11 +175,18 @@ class BanManager(
         plugin.logger.info("Banned ${player.name} for ${TimeUtil.formatDuration(duration)} (shared pool empty)")
     }
 
-    fun pardon(uuid: UUID): Boolean {
+    fun pardon(
+        uuid: UUID,
+        actor: String? = null,
+    ): Boolean {
         val data = dataManager.get(uuid) ?: return false
         if (!data.isBanned()) return false
 
-        val committed = data.snapshot().also { it.currentBan = null }
+        val committed =
+            data.snapshot().also {
+                it.recordHistory("PARDONED", actor = actor)
+                it.currentBan = null
+            }
 
         // If player is offline, mark for notification on join
         val player = Bukkit.getPlayer(uuid)
@@ -180,10 +198,15 @@ class BanManager(
         return true
     }
 
-    fun reset(uuid: UUID): Boolean {
+    fun reset(
+        uuid: UUID,
+        actor: String? = null,
+    ): Boolean {
         val data = dataManager.get(uuid) ?: return false
 
         val committed = data.snapshot()
+        committed.clearExpiredBan()
+        committed.recordHistory("RESET", actor = actor)
         committed.offenseLevel = 0
         committed.deaths.clear()
         committed.currentBan = null
