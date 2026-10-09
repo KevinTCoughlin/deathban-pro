@@ -14,7 +14,16 @@ repositories {
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
 }
 
+// Isolate detekt's Kotlin 2.4.10 parser from the project's Kotlin 2.4.20 compiler.
+val detektCli =
+    configurations.create("detektCli") {
+        isCanBeConsumed = false
+        isTransitive = false
+    }
+val detektJavaToolchains = extensions.getByType<org.gradle.jvm.toolchain.JavaToolchainService>()
+
 dependencies {
+    add(detektCli.name, "dev.detekt:detekt-cli:2.0.0-alpha.6:all")
     compileOnly("org.spigotmc:spigot-api:26.2-R0.1-SNAPSHOT")
     implementation("org.bstats:bstats-bukkit:3.2.1")
 
@@ -26,6 +35,42 @@ dependencies {
 }
 
 tasks {
+    val detekt =
+        register<JavaExec>("detekt") {
+            group = "verification"
+            description = "Run isolated detekt syntax analysis (no compiler/type resolution)"
+            classpath = detektCli
+            mainClass.set("dev.detekt.cli.Main")
+            javaLauncher.set(detektJavaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(21)) })
+            val source = providers.gradleProperty("detektInput").getOrElse("src")
+            val reportDir =
+                layout.buildDirectory
+                    .dir("reports/detekt")
+                    .get()
+                    .asFile
+            args(
+                "--analysis-mode",
+                "light",
+                "--language-version",
+                "2.4",
+                "--input",
+                file(source).absolutePath,
+                "--config",
+                file("detekt-config.yml").absolutePath,
+                "--build-upon-default-config",
+                "--base-path",
+                rootDir.absolutePath,
+                "--report",
+                "html:${reportDir.resolve("detekt.html")}",
+                "--report",
+                "sarif:${reportDir.resolve("detekt.sarif")}",
+                "--fail-on-severity",
+                "Warning",
+            )
+        }
+
+    check { dependsOn(detekt) }
+
     jar {
         enabled = false
     }

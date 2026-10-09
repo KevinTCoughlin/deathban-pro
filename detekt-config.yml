@@ -1,14 +1,38 @@
-# Detekt configuration for DeathBan Pro
-# Extends the default Detekt rules
+# Standalone detekt 2.0.0-alpha.6 in light (syntax-only) mode.
+# Compiler-dependent rules cannot run here. ktlint remains the formatting gate.
+# No baseline: selected findings fail the build, including existing findings.
+config:
+  validation: true
+  warningsAsErrors: true
 
+comments:
+  active: false
+complexity:
+  active: false
+coroutines:
+  active: false
 naming:
+  active: false
+style:
+  active: false
+
+empty-blocks:
   active: true
+  EmptyFunctionBlock:
+    # Optional Theme lifecycle hooks intentionally have empty defaults.
+    active: false
+
+exceptions:
+  active: true
+  TooGenericExceptionCaught:
+    # Plugin/file/network boundaries intentionally catch and log Exception.
+    active: false
+  SwallowedException:
+    # Logging the exception message at those boundaries is intentional.
+    active: false
 
 performance:
   active: true
 
 potential-bugs:
-  active: true
-
-style:
   active: true
