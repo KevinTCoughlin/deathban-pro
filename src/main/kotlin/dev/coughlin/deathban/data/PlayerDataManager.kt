@@ -31,6 +31,8 @@ class PlayerDataManager(
         loadPendingBans()
     }
 
+    fun getCached(uuid: UUID): PlayerData? = cache[uuid]?.snapshot()
+
     fun getOrCreate(uuid: UUID): PlayerData = cache.getOrPut(uuid) { load(uuid) ?: PlayerData(uuid) }
 
     fun get(uuid: UUID): PlayerData? = cache[uuid] ?: load(uuid)?.let { cache.putIfAbsent(uuid, it) ?: it }
@@ -44,7 +46,7 @@ class PlayerDataManager(
     }
 
     /**
-     * Synchronous save — writes player data to disk immediately.
+     * Synchronous save â€” writes player data to disk immediately.
      * Use for critical transitions that must persist before their consequences.
      */
     fun save(data: PlayerData) {
@@ -63,6 +65,8 @@ class PlayerDataManager(
                 cached.lastDeathTime = snapshot.lastDeathTime
                 cached.currentBan = snapshot.currentBan
                 cached.pendingPardon = snapshot.pendingPardon
+                cached.history.clear()
+                cached.history.addAll(snapshot.history)
                 cached.deaths.clear()
                 cached.deaths.addAll(snapshot.deaths)
             }
@@ -155,6 +159,7 @@ class PlayerDataManager(
             config.set("current-ban.end-time", ban.endTime.toString())
             config.set("current-ban.offense-level", ban.offenseLevel)
             config.set("current-ban.death-cause", ban.deathCause)
+            config.set("current-ban.pool-id", ban.poolId)
         }
 
         val deathsList =
@@ -174,6 +179,21 @@ class PlayerDataManager(
             }
         config.set("deaths", deathsList)
 
+        config.set(
+            "history",
+            data.history.takeLast(PlayerData.HISTORY_LIMIT).map { entry ->
+                mapOf(
+                    "timestamp" to entry.timestamp.toString(),
+                    "action" to entry.action,
+                    "actor" to entry.actor,
+                    "start" to entry.ban?.startTime?.toString(),
+                    "end" to entry.ban?.endTime?.toString(),
+                    "offense" to entry.ban?.offenseLevel,
+                    "cause" to entry.ban?.deathCause,
+                    "pool" to entry.ban?.poolId,
+                )
+            },
+        )
         AtomicFileWriter.write(file, config.saveToString())
     }
 
@@ -208,6 +228,7 @@ class PlayerDataManager(
                         endTime = endTime,
                         offenseLevel = config.getInt("current-ban.offense-level"),
                         deathCause = config.getString("current-ban.death-cause") ?: "UNKNOWN",
+                        poolId = config.getString("current-ban.pool-id"),
                     )
             } else {
                 logger.warning("Skipping corrupted ban record for $uuid (missing or invalid timestamps)")
@@ -237,6 +258,30 @@ class PlayerDataManager(
             }
         }
 
+        config.getMapList("history").takeLast(PlayerData.HISTORY_LIMIT).forEach { entry ->
+            runCatching {
+                val ban =
+                    if (entry["start"] != null) {
+                        BanRecord(
+                            Instant.parse(entry["start"] as String),
+                            Instant.parse(entry["end"] as String),
+                            (entry["offense"] as Number).toInt(),
+                            entry["cause"] as String,
+                            entry["pool"] as? String,
+                        )
+                    } else {
+                        null
+                    }
+                data.history.add(
+                    HistoryRecord(
+                        Instant.parse(entry["timestamp"] as String),
+                        entry["action"] as String,
+                        ban,
+                        entry["actor"] as? String,
+                    ),
+                )
+            }.onFailure { logger.warning("Skipping corrupted history record for $uuid: ${it.message}") }
+        }
         return data
     }
 

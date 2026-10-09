@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Persistent, bounded ban history with `/deathban history <player> [page]` for administrators, including expiry, pardon, reset, cause, duration, offense, and shared pool context.
+- Optional built-in PlaceholderAPI expansion for lives, offenses, remaining ban time, teams, and pool capacity.
+- Plain-language marketing copy emphasizing the free, open-source MIT license and practical admin features.
+
 ### Fixed
+
+- Legitimate deaths immediately after respawn now count; duplicate death protection follows respawn/quit rather than suppressing all deaths for five seconds.
 
 - **reload() not propagating Settings** — Managers and listeners are now rebuilt on reload so config changes take effect immediately
 - **Thread-unsafe async saves in PlayerDataManager** — Player data is now snapshotted before async disk writes to prevent ConcurrentModificationException

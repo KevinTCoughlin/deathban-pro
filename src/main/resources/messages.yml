@@ -79,3 +79,9 @@ errors:
   invalid-usage: "&cUsage: {usage}"
   invalid-team-name: "&cTeam names must be 1-32 characters using only letters, numbers, underscores, or hyphens."
   console-only-player: "&cThis command can only be used by players."
+
+history:
+  help: '&e/deathban history <player> [page] &7— View recent ban events'
+  header: '&eHistory for {player} — page {page}/{pages}'
+  empty: '&7No recorded events.'
+  entry: '&7{time} &f{action} &7cause={cause} duration={duration} offense={offense} pool={pool} actor={actor}'

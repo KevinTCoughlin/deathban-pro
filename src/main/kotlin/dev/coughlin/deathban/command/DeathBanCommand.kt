@@ -33,6 +33,7 @@ class DeathBanCommand(
         when (args[0].lowercase()) {
             "help" -> return handleHelp(sender)
             "check" -> return handleCheck(sender, args)
+            "history" -> return handleHistory(sender, args)
             "reset" -> return handleReset(sender, args)
             "pardon" -> return handlePardon(sender, args)
             "lives" -> return handleLives(sender, args)
@@ -40,7 +41,7 @@ class DeathBanCommand(
             "theme" -> return handleTheme(sender, args)
             "reload" -> return handleReload(sender)
             else -> {
-                sender.sendMessage(messages.getInvalidUsage("/deathban <check|reset|pardon|lives|theme|reload>"))
+                sender.sendMessage(messages.getInvalidUsage("/deathban <check|history|reset|pardon|lives|team|theme|reload>"))
                 return true
             }
         }
@@ -52,6 +53,63 @@ class DeathBanCommand(
             return true
         }
         sender.sendMessage(messages.getHelp())
+        if (sender.hasPermission("deathban.admin")) sender.sendMessage(messages.get("history.help"))
+        return true
+    }
+
+    private fun handleHistory(
+        sender: CommandSender,
+        args: Array<String>,
+    ): Boolean {
+        if (!sender.hasPermission("deathban.admin")) {
+            sender.sendMessage(messages.getNoPermission())
+            return true
+        }
+        val page = if (args.size < 3) 1 else args[2].toIntOrNull()
+        if (args.size !in 2..3 || page == null || page < 1) {
+            sender.sendMessage(messages.getInvalidUsage("/deathban history <player> [page]"))
+            return true
+        }
+        @Suppress("DEPRECATION")
+        val target = Bukkit.getOfflinePlayer(args[1])
+        val data = dataManager.get(target.uniqueId)?.snapshot()
+        if (data?.currentBan != null && !data.isBanned()) {
+            data.clearExpiredBan()
+            dataManager.save(data)
+        }
+        val entries =
+            data
+                ?.history
+                ?.asReversed()
+                ?.toList()
+                .orEmpty()
+        val pages = ((entries.size + 9) / 10).coerceAtLeast(1)
+        if (page > pages) {
+            sender.sendMessage(messages.getInvalidUsage("/deathban history ${args[1]} <1-$pages>"))
+            return true
+        }
+        sender.sendMessage(messages.prefixed("history.header", "player" to args[1], "page" to page, "pages" to pages))
+        if (entries.isEmpty()) sender.sendMessage(messages.get("history.empty"))
+        entries.drop((page - 1) * 10).take(10).forEach { entry ->
+            val ban = entry.ban
+            sender.sendMessage(
+                messages.get(
+                    "history.entry",
+                    "time" to entry.timestamp,
+                    "action" to entry.action,
+                    "cause" to (ban?.deathCause ?: "-"),
+                    "duration" to (
+                        ban?.let {
+                            dev.coughlin.deathban.util.TimeUtil
+                                .formatDuration(java.time.Duration.between(it.startTime, it.endTime))
+                        } ?: "-"
+                    ),
+                    "offense" to (ban?.offenseLevel ?: 0),
+                    "pool" to (ban?.poolId ?: "-"),
+                    "actor" to (entry.actor ?: "-"),
+                ),
+            )
+        }
         return true
     }
 
@@ -150,7 +208,7 @@ class DeathBanCommand(
             return true
         }
 
-        banManager.reset(target.uniqueId)
+        banManager.reset(target.uniqueId, sender.name)
         sender.sendMessage(messages.getResetSuccess(targetName))
         plugin.logger.info("${sender.name} reset offense data for $targetName")
         return true
@@ -180,7 +238,7 @@ class DeathBanCommand(
             return true
         }
 
-        if (banManager.pardon(target.uniqueId)) {
+        if (banManager.pardon(target.uniqueId, sender.name)) {
             sender.sendMessage(messages.getPardonSuccess(targetName))
             plugin.logger.info("${sender.name} pardoned $targetName")
         } else {

@@ -10,6 +10,7 @@ version = providers.gradleProperty("version").getOrElse("1.0.0-beta.1")
 
 repositories {
     mavenCentral()
+    maven("https://repo.extendedclip.com/releases/")
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
 }
@@ -25,6 +26,8 @@ val detektJavaToolchains = extensions.getByType<org.gradle.jvm.toolchain.JavaToo
 dependencies {
     add(detektCli.name, "dev.detekt:detekt-cli:2.0.0-alpha.6:all")
     compileOnly("org.spigotmc:spigot-api:26.2-R0.1-SNAPSHOT")
+    compileOnly("me.clip:placeholderapi:2.11.6")
+    testImplementation("me.clip:placeholderapi:2.11.6")
     implementation("org.bstats:bstats-bukkit:3.2.1")
 
     testImplementation("org.spigotmc:spigot-api:26.2-R0.1-SNAPSHOT")

@@ -10,12 +10,19 @@ import java.time.Duration
 class Messages(
     private val file: File,
 ) {
-    private var config: YamlConfiguration = YamlConfiguration.loadConfiguration(file)
+    private var config: YamlConfiguration = load()
+
+    private fun load(): YamlConfiguration =
+        YamlConfiguration.loadConfiguration(file).also { loaded ->
+            Messages::class.java.getResourceAsStream("/messages.yml")?.reader()?.use { reader ->
+                loaded.setDefaults(YamlConfiguration.loadConfiguration(reader))
+            }
+        }
 
     val prefix: String get() = ColorUtil.colorize(config.getString("prefix") ?: "&8[&cDeathBan&8]&r ")
 
     fun reload() {
-        config = YamlConfiguration.loadConfiguration(file)
+        config = load()
     }
 
     fun get(path: String): String = ColorUtil.colorize(config.getString(path) ?: "Missing message: $path")

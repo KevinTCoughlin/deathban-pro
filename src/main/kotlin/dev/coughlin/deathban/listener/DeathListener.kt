@@ -14,6 +14,8 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.PlayerDeathEvent
+import org.bukkit.event.player.PlayerQuitEvent
+import org.bukkit.event.player.PlayerRespawnEvent
 import org.bukkit.plugin.Plugin
 import java.time.Instant
 import java.util.UUID
@@ -54,16 +56,20 @@ class DeathListener(
 
         try {
             processDeath(player, event)
-        } finally {
-            // Clear processing flag after a delay to handle respawn
-            plugin.server.scheduler.runTaskLater(
-                plugin,
-                Runnable {
-                    processingDeaths.remove(player.uniqueId)
-                },
-                100L,
-            ) // 5 seconds
+        } catch (e: Exception) {
+            processingDeaths.remove(player.uniqueId)
+            throw e
         }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    fun onRespawn(event: PlayerRespawnEvent) {
+        processingDeaths.remove(event.player.uniqueId)
+    }
+
+    @EventHandler
+    fun onQuit(event: PlayerQuitEvent) {
+        processingDeaths.remove(event.player.uniqueId)
     }
 
     private fun processDeath(
