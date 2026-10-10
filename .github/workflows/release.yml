@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to release (e.g., 1.0.0 or 1.0.0-SNAPSHOT)'
+        description: 'Version to release (e.g., 1.3.0-alpha.1)'
         required: true
 
 permissions:
@@ -48,6 +48,9 @@ jobs:
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
           echo "$VERSION_METADATA" >> "$GITHUB_OUTPUT"
 
+      - name: Test release version validation
+        run: bash scripts/test-validate-release-version.sh
+
       - name: Build
         run: ./gradlew check shadowJar --no-daemon -Pversion=${{ steps.version.outputs.VERSION }}
 
@@ -76,11 +79,23 @@ jobs:
           cat ${{ steps.git-cliff.outputs.changelog }} > CHANGELOG.md.tmp
           mv CHANGELOG.md.tmp CHANGELOG.md
 
+      - name: Select release notes
+        env:
+          VERSION: ${{ steps.version.outputs.VERSION }}
+        run: |
+          if [ -f "docs/releases/$VERSION.md" ]; then
+            cp "docs/releases/$VERSION.md" build/release/NOTES.md
+          else
+            cp CHANGELOG.md build/release/NOTES.md
+          fi
+
       - name: Create Release
         uses: softprops/action-gh-release@v3
         with:
           files: build/release/DeathBanPro-*.jar
-          body_path: CHANGELOG.md
+          tag_name: v${{ steps.version.outputs.VERSION }}
+          target_commitish: ${{ github.sha }}
+          body_path: build/release/NOTES.md
           draft: false
           prerelease: ${{ steps.version.outputs.IS_PRERELEASE == '1' }}
           name: Release ${{ steps.version.outputs.VERSION }}
