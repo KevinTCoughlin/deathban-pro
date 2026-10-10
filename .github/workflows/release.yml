@@ -90,6 +90,7 @@ jobs:
           fi
 
       - name: Create draft release and upload JAR
+        id: draft_release
         uses: softprops/action-gh-release@v3
         with:
           files: build/release/DeathBanPro-*.jar
@@ -105,10 +106,11 @@ jobs:
 
       - name: Verify draft asset and publish
         env:
+          RELEASE_ID: ${{ steps.draft_release.outputs.id }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.version.outputs.VERSION }}
         run: |
-          gh api "repos/$GITHUB_REPOSITORY/releases/tags/v$VERSION" > build/release/release.json
+          gh api "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID" > build/release/release.json
           jq -e --arg name "DeathBanPro-$VERSION.jar" \
             '.draft == true and any(.assets[]; .name == $name and .size > 0)' \
             build/release/release.json
