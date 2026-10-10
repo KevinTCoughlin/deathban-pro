@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "dev.coughlin"
-version = providers.gradleProperty("version").getOrElse("1.3.0-alpha.1")
+version = providers.gradleProperty("version").getOrElse("1.3.0-alpha.2")
 
 repositories {
     mavenCentral()
