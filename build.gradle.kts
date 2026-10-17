@@ -26,8 +26,8 @@ val detektJavaToolchains = extensions.getByType<org.gradle.jvm.toolchain.JavaToo
 dependencies {
     add(detektCli.name, "dev.detekt:detekt-cli:2.0.0-alpha.6:all")
     compileOnly("org.spigotmc:spigot-api:26.3-R0.1-SNAPSHOT")
-    compileOnly("me.clip:placeholderapi:2.11.6")
-    testImplementation("me.clip:placeholderapi:2.11.6")
+    compileOnly("me.clip:placeholderapi:2.12.3")
+    testImplementation("me.clip:placeholderapi:2.12.3")
     implementation("org.bstats:bstats-bukkit:3.2.1")
 
     testImplementation("org.spigotmc:spigot-api:26.3-R0.1-SNAPSHOT")
