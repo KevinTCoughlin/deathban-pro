@@ -3,8 +3,8 @@
 [![CI](https://github.com/KevinTCoughlin/deathban-pro/actions/workflows/ci.yml/badge.svg)](https://github.com/KevinTCoughlin/deathban-pro/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/KevinTCoughlin/deathban-pro/branch/main/graph/badge.svg)](https://codecov.io/gh/KevinTCoughlin/deathban-pro)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.21%2B-brightgreen)](https://www.minecraft.net/)
-[![Java](https://img.shields.io/badge/Java-21%2B-orange)](https://adoptium.net/)
+[![Minecraft](https://img.shields.io/badge/Minecraft-26.3%2B-brightgreen)](https://www.minecraft.net/)
+[![Java](https://img.shields.io/badge/Java-25%2B-orange)](https://adoptium.net/)
 
 Hardcore-style death penalties for Minecraft servers. When players die, they receive temporary bans that escalate with repeated deaths.
 
@@ -23,8 +23,10 @@ Hardcore-style death penalties for Minecraft servers. When players die, they rec
 
 ## Requirements
 
-- Spigot or Paper 1.21+
-- Java 21+
+- Paper 26.3 (this build is compiled and tested against Paper API `26.3.build.237-stable`)
+- Java 25+ to compile and to run. Paper 26.1 and newer require Java 25, and this plugin is now built for that runtime. A Java 21 host, including a typical 1.21 server, cannot load it. `api-version` stays `1.21` because the plugin still uses that Bukkit feature level.
+
+Minecraft 26.4 Snapshot 5 (October 20, 2026, preview only) makes login encryption and compression wait for an explicit client acknowledgement (`login_finished` / `login_acknowledged`, or `apply_options` / `options_applied`). DeathBan Pro does not use NMS, ProtocolLib, PacketEvents, or a proxy, and it does not send login packets, so that snapshot needs no plugin change. This release is not a 26.4 migration. A proxy or packet library added later has to implement the acknowledgement before 26.4 clients can connect.
 
 ## Installation
 

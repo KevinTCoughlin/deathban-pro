@@ -38,6 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Compile and unit-test against Paper API `26.3.build.237-stable`. The devcontainer Paper server is pinned to 26.3 build 237. There is no paperweight dev-bundle because this plugin has no NMS.
+- Require JDK 25 to compile and run, matching Paper 26.1+. Java 21 hosts can no longer load this build.
 - Updated plugin.yml usage to include all subcommands (lives, team, theme)
 - Added security warning for external theme JARs in Theme interface docs and README
 - Release builds now embed and verify the requested version and publish only the shaded plugin JAR
@@ -45,8 +47,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Technical
 
-- Kotlin 2.3.21 with Java 21 target
-- Spigot API 1.21+ compatibility
+- Kotlin 2.4.21 with a Java 25 toolchain
+- Paper API 26.3 build 237; `api-version` remains `1.21`
 - 131+ unit tests covering core logic
 
 ## [1.0.0-beta.1] - 2025-01-25

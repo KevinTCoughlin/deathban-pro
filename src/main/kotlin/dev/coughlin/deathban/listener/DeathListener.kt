@@ -64,6 +64,8 @@ class DeathListener(
 
     @EventHandler(priority = EventPriority.MONITOR)
     fun onRespawn(event: PlayerRespawnEvent) {
+        // Build 233 chooses the full respawn-radius square when no bed or anchor is valid.
+        // Leave that location, and any location another plugin already chose, unchanged.
         processingDeaths.remove(event.player.uniqueId)
     }
 
@@ -76,6 +78,9 @@ class DeathListener(
         player: Player,
         event: PlayerDeathEvent,
     ) {
+        // Penalties run only from this death event. Build 228 reports in-fire damage as a
+        // block damage event, which is still just lastDamageCause on the one death.
+        // A second damage listener would charge that same fatal hit again.
         val deathCause =
             event.entity.lastDamageCause
                 ?.cause

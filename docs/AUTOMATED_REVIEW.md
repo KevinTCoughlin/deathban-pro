@@ -2,7 +2,7 @@
 
 CI runs Kotlin formatting, unit/architecture tests, isolated shaded-JAR checks, and detekt static analysis. Those checks do not require a model-provider credential.
 
-detekt is pinned to `2.0.0-alpha.6` and runs in an isolated Java 21 process with light, syntax-only analysis for Kotlin 2.4. This avoids mixing detekt's Kotlin compiler with the project's compiler; type-resolution rules are not available in this mode. The selected bug, performance, exception and empty-block rules fail on findings, without a baseline hiding existing issues. Formatting remains ktlint's responsibility. Run `./gradlew detekt` locally; CI saves HTML and SARIF reports as artifacts.
+detekt is pinned to `2.0.0-alpha.6` and runs in an isolated Java 25 process with light, syntax-only analysis for Kotlin 2.4. This avoids mixing detekt's Kotlin compiler with the project's compiler; type-resolution rules are not available in this mode. The selected bug, performance, exception and empty-block rules fail on findings, without a baseline hiding existing issues. Formatting remains ktlint's responsibility. Run `./gradlew detekt` locally; CI saves HTML and SARIF reports as artifacts.
 
 ## PR-Agent activation
 

@@ -8,11 +8,14 @@ plugins {
 group = "dev.coughlin"
 version = providers.gradleProperty("version").getOrElse("1.3.0-alpha.2")
 
+// Paper API 26.3 build 237 is the newest stable build that includes builds 228, 229, and 233.
+// This plugin has no NMS, so it does not depend on the paperweight dev-bundle.
+val paperApi = "26.3.build.237-stable"
+
 repositories {
     mavenCentral()
+    maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://repo.extendedclip.com/releases/")
-    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
-    maven("https://oss.sonatype.org/content/repositories/snapshots/")
 }
 
 // Isolate detekt's Kotlin 2.4.10 parser from the project's Kotlin 2.4.20 compiler.
@@ -25,12 +28,12 @@ val detektJavaToolchains = extensions.getByType<org.gradle.jvm.toolchain.JavaToo
 
 dependencies {
     add(detektCli.name, "dev.detekt:detekt-cli:2.0.0-alpha.6:all")
-    compileOnly("org.spigotmc:spigot-api:26.3-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:$paperApi")
     compileOnly("me.clip:placeholderapi:2.12.3")
     testImplementation("me.clip:placeholderapi:2.12.3")
     implementation("org.bstats:bstats-bukkit:3.2.1")
 
-    testImplementation("org.spigotmc:spigot-api:26.3-R0.1-SNAPSHOT")
+    testImplementation("io.papermc.paper:paper-api:$paperApi")
     testImplementation("org.junit.jupiter:junit-jupiter:6.1.3")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("io.mockk:mockk:1.14.11")
@@ -44,7 +47,7 @@ tasks {
             description = "Run isolated detekt syntax analysis (no compiler/type resolution)"
             classpath = detektCli
             mainClass.set("dev.detekt.cli.Main")
-            javaLauncher.set(detektJavaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(21)) })
+            javaLauncher.set(detektJavaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(25)) })
             val source = providers.gradleProperty("detektInput").getOrElse("src")
             val reportDir =
                 layout.buildDirectory
@@ -261,5 +264,6 @@ tasks {
 }
 
 kotlin {
-    jvmToolchain(21)
+    // Paper API 26.3.build.237-stable is Java 25 bytecode, and Paper 26.1+ runs on Java 25.
+    jvmToolchain(25)
 }

@@ -6,9 +6,9 @@ Thank you for your interest in contributing to DeathBan Pro! This document provi
 
 ### Prerequisites
 
-- Java 21 or higher
+- JDK 25 or higher (Paper 26.1+ and Paper API 26.3 require it at compile time and at runtime)
 - Gradle (wrapper included)
-- A Minecraft server (Spigot or Paper 1.21+) for testing
+- A Minecraft server (Paper 26.3; the devcontainer uses build 237) for testing
 
 ### Setting Up Development Environment
 
