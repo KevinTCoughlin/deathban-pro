@@ -2,7 +2,7 @@ name: DeathBanPro
 version: ${version}
 main: dev.coughlin.deathban.DeathBanPlugin
 softdepend: [PlaceholderAPI]
-api-version: '1.21'
+api-version: '26.3'
 description: Hardcore-style death penalties with escalating bans
 author: kevintcoughlin
 website: https://github.com/kevintcoughlin/deathban-pro

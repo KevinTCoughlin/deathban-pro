@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     kotlin("jvm") version "2.4.21"
     id("com.gradleup.shadow") version "9.6.1"
@@ -26,8 +28,22 @@ val detektCli =
     }
 val detektJavaToolchains = extensions.getByType<org.gradle.jvm.toolchain.JavaToolchainService>()
 
+// Java 21 guard compiled into the JAR root. Java 25 loads the real classes from META-INF/versions/25.
+val jvm21Stub =
+    sourceSets.create("jvm21Stub") {
+        java.setSrcDirs(listOf("src/jvm21Stub/java"))
+    }
+
+// Resolved as Java 25 so the guard can be compiled with --release 21 against Paper's Java 25 API jar.
+val paperForStub =
+    configurations.create("paperForStub") {
+        isCanBeConsumed = false
+        isCanBeResolved = true
+    }
+
 dependencies {
     add(detektCli.name, "dev.detekt:detekt-cli:2.0.0-alpha.6:all")
+    add(paperForStub.name, "io.papermc.paper:paper-api:$paperApi")
     compileOnly("io.papermc.paper:paper-api:$paperApi")
     compileOnly("me.clip:placeholderapi:2.12.3")
     testImplementation("me.clip:placeholderapi:2.12.3")
@@ -81,10 +97,32 @@ tasks {
         enabled = false
     }
 
+    named<JavaCompile>("compileJvm21StubJava") {
+        classpath = paperForStub
+        options.release.set(21)
+    }
+
     shadowJar {
         archiveBaseName.set("DeathBanPro")
         archiveClassifier.set("")
         relocate("org.bstats", "dev.coughlin.deathban.metrics.bstats")
+        dependsOn(jvm21Stub.classesTaskName)
+        manifest {
+            attributes("Multi-Release" to "true")
+        }
+        from(jvm21Stub.output) {
+            include("dev/coughlin/deathban/DeathBanPlugin.class")
+        }
+        eachFile {
+            val sourcePath = file.invariantSeparatorsPath
+            if (
+                path.startsWith("dev/coughlin/deathban/") &&
+                !path.startsWith("dev/coughlin/deathban/metrics/") &&
+                !sourcePath.contains("/jvm21Stub/")
+            ) {
+                path = "META-INF/versions/25/$path"
+            }
+        }
 
         exclude("DebugProbesKt.bin")
         exclude("META-INF/*.kotlin_module")
@@ -242,10 +280,10 @@ tasks {
         }
     }
 
-    // Gradle wrapper verification
+    // Gradle 9.8.1 runs on Java 25. Keep this aligned with gradle-wrapper.properties.
     wrapper {
-        version = "9.6.1"
-        distributionType = Wrapper.DistributionType.ALL
+        version = "9.8.1"
+        distributionType = Wrapper.DistributionType.BIN
         validateDistributionUrl = true
     }
 
@@ -263,7 +301,15 @@ tasks {
     }
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(25))
+    }
+}
+
 kotlin {
-    // Paper API 26.3.build.237-stable is Java 25 bytecode, and Paper 26.1+ runs on Java 25.
     jvmToolchain(25)
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_25)
+    }
 }

@@ -17,9 +17,9 @@ This guide covers building from source, development setup, running tests, and ex
 
 ### Required Tools
 
-- **Java**: JDK 25+ (Paper API 26.3 and Paper 26.1+ servers)
+- **Java**: JDK 25. This build requires Java 25 and Paper 26.3. Java 21 / Minecraft 1.21 servers should use release v1.3.0-alpha.2
 - **Git**: Latest version
-- **Gradle**: 9.0+ (included as wrapper)
+- **Gradle**: 9.8.1 (included as wrapper; runs on Java 25)
 - **Kotlin**: Managed by Gradle (no separate installation required)
 
 ### Verify Installation
@@ -109,7 +109,7 @@ Caused by: java.lang.UnsupportedClassVersionError
 # Check which Java Gradle is using
 ./gradlew --version
 # If wrong version, set JAVA_HOME:
-export JAVA_HOME=/path/to/java21
+export JAVA_HOME=/path/to/java25
 ./gradlew build
 ```
 
