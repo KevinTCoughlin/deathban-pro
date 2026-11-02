@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     kotlin("jvm") version "2.4.21"
     id("com.gradleup.shadow") version "9.6.1"
@@ -8,11 +10,14 @@ plugins {
 group = "dev.coughlin"
 version = providers.gradleProperty("version").getOrElse("1.3.0-alpha.2")
 
+// Paper API 26.3 build 237 is the newest stable build that includes builds 228, 229, and 233.
+// This plugin has no NMS, so it does not depend on the paperweight dev-bundle.
+val paperApi = "26.3.build.237-stable"
+
 repositories {
     mavenCentral()
+    maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://repo.extendedclip.com/releases/")
-    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
-    maven("https://oss.sonatype.org/content/repositories/snapshots/")
 }
 
 // Isolate detekt's Kotlin 2.4.10 parser from the project's Kotlin 2.4.20 compiler.
@@ -23,14 +28,28 @@ val detektCli =
     }
 val detektJavaToolchains = extensions.getByType<org.gradle.jvm.toolchain.JavaToolchainService>()
 
+// Java 21 guard compiled into the JAR root. Java 25 loads the real classes from META-INF/versions/25.
+val jvm21Stub =
+    sourceSets.create("jvm21Stub") {
+        java.setSrcDirs(listOf("src/jvm21Stub/java"))
+    }
+
+// Resolved as Java 25 so the guard can be compiled with --release 21 against Paper's Java 25 API jar.
+val paperForStub =
+    configurations.create("paperForStub") {
+        isCanBeConsumed = false
+        isCanBeResolved = true
+    }
+
 dependencies {
     add(detektCli.name, "dev.detekt:detekt-cli:2.0.0-alpha.6:all")
-    compileOnly("org.spigotmc:spigot-api:26.3-R0.1-SNAPSHOT")
+    add(paperForStub.name, "io.papermc.paper:paper-api:$paperApi")
+    compileOnly("io.papermc.paper:paper-api:$paperApi")
     compileOnly("me.clip:placeholderapi:2.12.3")
     testImplementation("me.clip:placeholderapi:2.12.3")
     implementation("org.bstats:bstats-bukkit:3.2.1")
 
-    testImplementation("org.spigotmc:spigot-api:26.3-R0.1-SNAPSHOT")
+    testImplementation("io.papermc.paper:paper-api:$paperApi")
     testImplementation("org.junit.jupiter:junit-jupiter:6.1.3")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("io.mockk:mockk:1.14.11")
@@ -44,7 +63,7 @@ tasks {
             description = "Run isolated detekt syntax analysis (no compiler/type resolution)"
             classpath = detektCli
             mainClass.set("dev.detekt.cli.Main")
-            javaLauncher.set(detektJavaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(21)) })
+            javaLauncher.set(detektJavaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(25)) })
             val source = providers.gradleProperty("detektInput").getOrElse("src")
             val reportDir =
                 layout.buildDirectory
@@ -78,10 +97,32 @@ tasks {
         enabled = false
     }
 
+    named<JavaCompile>("compileJvm21StubJava") {
+        classpath = paperForStub
+        options.release.set(21)
+    }
+
     shadowJar {
         archiveBaseName.set("DeathBanPro")
         archiveClassifier.set("")
         relocate("org.bstats", "dev.coughlin.deathban.metrics.bstats")
+        dependsOn(jvm21Stub.classesTaskName)
+        manifest {
+            attributes("Multi-Release" to "true")
+        }
+        from(jvm21Stub.output) {
+            include("dev/coughlin/deathban/DeathBanPlugin.class")
+        }
+        eachFile {
+            val sourcePath = file.invariantSeparatorsPath
+            if (
+                path.startsWith("dev/coughlin/deathban/") &&
+                !path.startsWith("dev/coughlin/deathban/metrics/") &&
+                !sourcePath.contains("/jvm21Stub/")
+            ) {
+                path = "META-INF/versions/25/$path"
+            }
+        }
 
         exclude("DebugProbesKt.bin")
         exclude("META-INF/*.kotlin_module")
@@ -239,10 +280,10 @@ tasks {
         }
     }
 
-    // Gradle wrapper verification
+    // Gradle 9.8.1 runs on Java 25. Keep this aligned with gradle-wrapper.properties.
     wrapper {
-        version = "9.6.1"
-        distributionType = Wrapper.DistributionType.ALL
+        version = "9.8.1"
+        distributionType = Wrapper.DistributionType.BIN
         validateDistributionUrl = true
     }
 
@@ -260,6 +301,15 @@ tasks {
     }
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(25))
+    }
+}
+
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(25)
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_25)
+    }
 }

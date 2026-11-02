@@ -17,9 +17,9 @@ This guide covers building from source, development setup, running tests, and ex
 
 ### Required Tools
 
-- **Java**: 21+ (LTS recommended)
+- **Java**: JDK 25. This build requires Java 25 and Paper 26.3. Java 21 / Minecraft 1.21 servers should use release v1.3.0-alpha.2
 - **Git**: Latest version
-- **Gradle**: 9.0+ (included as wrapper)
+- **Gradle**: 9.8.1 (included as wrapper; runs on Java 25)
 - **Kotlin**: Managed by Gradle (no separate installation required)
 
 ### Verify Installation
@@ -27,7 +27,7 @@ This guide covers building from source, development setup, running tests, and ex
 ```bash
 # Check Java version
 java -version
-# Expected: java 21 LTS or later
+# Expected: java 25 or later
 
 # Check Git
 git --version
@@ -103,13 +103,13 @@ cp build/libs/DeathBanPro-*.jar ~/server/plugins/
 Caused by: java.lang.UnsupportedClassVersionError
 ```
 
-**Solution:** Upgrade to Java 21+ or 25+
+**Solution:** Use JDK 25 or newer. Paper 26.3 and this plugin both require it
 
 ```bash
 # Check which Java Gradle is using
 ./gradlew --version
 # If wrong version, set JAVA_HOME:
-export JAVA_HOME=/path/to/java21
+export JAVA_HOME=/path/to/java25
 ./gradlew build
 ```
 
@@ -242,8 +242,8 @@ src/test/kotlin/
 #### Configure Java
 
 1. **File → Project Structure → Project**
-2. **SDK**: Select Java 21+ (or download)
-3. **Language Level**: 21 or 25+
+2. **SDK**: Select JDK 25
+3. **Language Level**: 25
 4. **Apply → OK**
 
 #### Configure Gradle
