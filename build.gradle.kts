@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "dev.coughlin"
-version = providers.gradleProperty("version").getOrElse("1.3.0-alpha.2")
+version = providers.gradleProperty("version").getOrElse("2.0.0-alpha.1")
 
 // Paper API 26.3 build 237 is the newest stable build that includes builds 228, 229, and 233.
 // This plugin has no NMS, so it does not depend on the paperweight dev-bundle.
