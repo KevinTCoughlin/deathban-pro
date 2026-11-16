@@ -12,7 +12,7 @@ version = providers.gradleProperty("version").getOrElse("2.0.0-alpha.1")
 
 // Paper API 26.3 build 237 is the newest stable build that includes builds 228, 229, and 233.
 // This plugin has no NMS, so it does not depend on the paperweight dev-bundle.
-val paperApi = "26.3.build.237-stable"
+val paperApi = "26.3.build.244-stable"
 
 repositories {
     mavenCentral()
@@ -52,7 +52,7 @@ dependencies {
     testImplementation("io.papermc.paper:paper-api:$paperApi")
     testImplementation("org.junit.jupiter:junit-jupiter:6.1.3")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testImplementation("io.mockk:mockk:1.14.11")
+    testImplementation("io.mockk:mockk:1.14.12")
     testImplementation("com.tngtech.archunit:archunit-junit5:1.5.1")
 }
 
