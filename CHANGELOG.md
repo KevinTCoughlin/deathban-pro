@@ -39,7 +39,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Require Java 25 and Paper 26.3. Gradle toolchains use `JavaLanguageVersion.of(25)`; Kotlin uses `jvmToolchain(25)` and `jvmTarget` `JVM_25`. `plugin.yml` `api-version` is `26.3`. Java 21 and Minecraft 1.21 servers should stay on release v1.3.0-alpha.2.
-- Compile and unit-test against Paper API `26.3.build.237-stable`. The devcontainer Paper server is pinned to 26.3 build 237. There is no paperweight dev-bundle because this plugin has no NMS. Gradle 9.8.1, Kotlin 2.4.21, and Shadow 9.6.1 are the versions that build this Java 25 plugin. Tests use MockK; MockBukkit is not a dependency.
+- Compile and unit-test against Paper API `26.3.build.258-stable`. The devcontainer Paper server is pinned to 26.3 build 258. There is no paperweight dev-bundle because this plugin has no NMS. Gradle 9.9.2, Kotlin 2.4.21, and Shadow 9.6.1 are the versions that build this Java 25 plugin. Tests use MockK; MockBukkit is not a dependency.
+- Paper 26.3 build 241 stops clamping health to base max health on join. DeathBan does not read or write health, so shared lives and `deathban.bypass` are unchanged.
+- Paper 26.3 build 255 calls `BlockSpreadEvent` when fire spreads. DeathBan has no protected arenas or fire-spread rules, so it does not cancel that event.
 - On Java 21, a multi-release guard logs that Java 25 and Paper 26.3 are required and disables the plugin. Java 25 loads the real classes from `META-INF/versions/25`.
 - Updated plugin.yml usage to include all subcommands (lives, team, theme)
 - Added security warning for external theme JARs in Theme interface docs and README
@@ -49,7 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Technical
 
 - Kotlin 2.4.21, `jvmToolchain(25)`, `jvmTarget` `JVM_25`
-- Paper API 26.3 build 237; `api-version` is `26.3`
+- Paper API 26.3 build 258; `api-version` is `26.3`
 - 131+ unit tests covering core logic
 
 ## [1.0.0-beta.1] - 2025-01-25

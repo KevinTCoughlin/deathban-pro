@@ -26,7 +26,7 @@ Hardcore-style death penalties for Minecraft servers. When players die, they rec
 This build requires **Java 25** and **Paper 26.3**.
 
 - Compile and runtime JDK: 25. Gradle uses `JavaLanguageVersion.of(25)`, and Kotlin uses `jvmToolchain(25)` with `jvmTarget` `JVM_25`.
-- Server: Paper 26.3. The compile and test API is Paper API `26.3.build.237-stable`. `plugin.yml` sets `api-version: '26.3'`.
+- Server: Paper 26.3. The compile and test API is Paper API `26.3.build.258-stable`. `plugin.yml` sets `api-version: '26.3'`.
 - Java 21 and Minecraft 1.21 servers should stay on the previous release, [v1.3.0-alpha.2](https://github.com/KevinTCoughlin/deathban-pro/releases/tag/v1.3.0-alpha.2). The JAR is a multi-release archive: on Java 21 the root main class logs that requirement and disables the plugin; Java 25 loads the real plugin from `META-INF/versions/25`.
 
 Minecraft 26.4 Snapshot 5 (October 20, 2026, preview only) makes login encryption and compression wait for an explicit client acknowledgement (`login_finished` / `login_acknowledged`, or `apply_options` / `options_applied`). DeathBan Pro does not use NMS, ProtocolLib, PacketEvents, or a proxy, and it does not send login packets, so that snapshot needs no plugin change. This release is not a 26.4 migration. A proxy or packet library added later has to implement the acknowledgement before 26.4 clients can connect.

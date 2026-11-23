@@ -19,7 +19,7 @@ This guide covers building from source, development setup, running tests, and ex
 
 - **Java**: JDK 25. This build requires Java 25 and Paper 26.3. Java 21 / Minecraft 1.21 servers should use release v1.3.0-alpha.2
 - **Git**: Latest version
-- **Gradle**: 9.8.1 (included as wrapper; runs on Java 25)
+- **Gradle**: 9.9.2 (included as wrapper; runs on Java 25)
 - **Kotlin**: Managed by Gradle (no separate installation required)
 
 ### Verify Installation
