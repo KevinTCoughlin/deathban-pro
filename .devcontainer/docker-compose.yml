@@ -14,7 +14,7 @@ services:
       EULA: "TRUE"
       TYPE: "PAPER"
       VERSION: "26.3"
-      PAPER_BUILD: "237"
+      PAPER_BUILD: "258"
       MEMORY: "2G"
       ONLINE_MODE: "FALSE"
       COPY_CONFIG_DEST: /data

@@ -10,9 +10,10 @@ plugins {
 group = "dev.coughlin"
 version = providers.gradleProperty("version").getOrElse("2.0.0-alpha.1")
 
-// Paper API 26.3 build 237 is the newest stable build that includes builds 228, 229, and 233.
+// Paper API 26.3 build 258, verified stable on the Paper downloads API (2026-11-22).
+// Includes build 241 (join no longer clamps health to base max) and build 255 (fire calls BlockSpreadEvent).
 // This plugin has no NMS, so it does not depend on the paperweight dev-bundle.
-val paperApi = "26.3.build.244-stable"
+val paperApi = "26.3.build.258-stable"
 
 repositories {
     mavenCentral()
@@ -280,9 +281,9 @@ tasks {
         }
     }
 
-    // Gradle 9.8.1 runs on Java 25. Keep this aligned with gradle-wrapper.properties.
+    // Gradle 9.9.2 runs on Java 25. Keep this aligned with gradle-wrapper.properties.
     wrapper {
-        version = "9.8.1"
+        version = "9.9.2"
         distributionType = Wrapper.DistributionType.BIN
         validateDistributionUrl = true
     }

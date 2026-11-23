@@ -16,9 +16,11 @@ import org.bukkit.World
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
+import org.bukkit.event.block.BlockSpreadEvent
 import org.bukkit.event.entity.EntityDamageByBlockEvent
 import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.entity.PlayerDeathEvent
+import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerRespawnEvent
 import org.bukkit.plugin.Plugin
 import org.junit.jupiter.api.Test
@@ -118,6 +120,61 @@ class Paper26CompatibilityTest {
     }
 
     @Test
+    fun `joining with health above base max does not change health or shared lives`() {
+        val fixture = sharedFixture(health = 30.0)
+        val livesBefore = fixture.manager.getGlobalPool().lives
+        val join =
+            JoinListener(
+                mockk(relaxed = true),
+                mockk(relaxed = true),
+                mockk(relaxed = true),
+            )
+        val joinEvent = mockk<PlayerJoinEvent>(relaxed = true)
+        every { joinEvent.player } returns fixture.player
+
+        join.onPlayerJoin(joinEvent)
+        fixture.deliverFireDamage()
+        fixture.listener.onPlayerDeath(fixture.death)
+
+        verify(exactly = 0) { fixture.player.setHealth(any()) }
+        assertEquals(30.0, fixture.player.health)
+        assertEquals(livesBefore - 1, fixture.manager.getGlobalPool().lives)
+    }
+
+    @Test
+    fun `admin with health above base max stays immune to fire`() {
+        val fixture = sharedFixture(bypass = true, health = 30.0)
+        val livesBefore = fixture.manager.getGlobalPool().lives
+
+        fixture.deliverFireDamage()
+        fixture.listener.onPlayerDeath(fixture.death)
+
+        verify(exactly = 0) { fixture.player.setHealth(any()) }
+        assertEquals(livesBefore, fixture.manager.getGlobalPool().lives)
+    }
+
+    @Test
+    fun `fire spread is not cancelled because this plugin has no protected arenas`() {
+        val handled =
+            listOf(DeathListener::class.java, JoinListener::class.java).flatMap { type ->
+                type.declaredMethods
+                    .filter { it.isAnnotationPresent(EventHandler::class.java) }
+                    .map { it.parameterTypes.single() }
+            }
+        assertFalse(handled.any { BlockSpreadEvent::class.java.isAssignableFrom(it) })
+        val hits =
+            File("src/main")
+                .walkTopDown()
+                .filter { it.isFile && it.extension in setOf("kt", "yml") }
+                .filter { file ->
+                    val text = file.readText()
+                    text.contains("BlockSpreadEvent") || text.contains("protected arena")
+                }.map { it.relativeTo(File("src/main")).path }
+                .toList()
+        assertEquals(emptyList(), hits)
+    }
+
+    @Test
     fun `main sources do not reference dragon breath potions or packet libraries`() {
         val forbidden =
             listOf(
@@ -140,8 +197,11 @@ class Paper26CompatibilityTest {
         assertEquals(emptyList(), hits)
     }
 
-    private fun sharedFixture(bypass: Boolean = false): SharedFixture {
-        val player = player(bypass)
+    private fun sharedFixture(
+        bypass: Boolean = false,
+        health: Double = 10.0,
+    ): SharedFixture {
+        val player = player(bypass, health)
         val fire = fireDamage(player)
         val manager = SharedLivesManager(tempDir, Logger.getLogger("paper26"), 10, 20)
         val listener =
@@ -157,7 +217,10 @@ class Paper26CompatibilityTest {
         return SharedFixture(player, fire, death(player), listener, manager)
     }
 
-    private fun player(bypass: Boolean = false): Player {
+    private fun player(
+        bypass: Boolean = false,
+        health: Double = 10.0,
+    ): Player {
         val player = mockk<Player>(relaxed = true)
         val world = mockk<World>(relaxed = true)
         val location = mockk<Location>(relaxed = true)
@@ -169,7 +232,7 @@ class Paper26CompatibilityTest {
         every { location.x } returns 1.0
         every { location.y } returns 64.0
         every { location.z } returns 2.0
-        every { player.health } returns 10.0
+        every { player.health } returns health
         return player
     }
 
