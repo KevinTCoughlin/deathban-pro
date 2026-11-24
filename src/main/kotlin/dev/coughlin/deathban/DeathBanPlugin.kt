@@ -15,10 +15,12 @@ import dev.coughlin.deathban.manager.SharedLivesManager
 import dev.coughlin.deathban.theme.ThemeManager
 import dev.coughlin.deathban.util.ColorUtil
 import dev.coughlin.deathban.util.UpdateChecker
+import net.kyori.adventure.text.Component
 import org.bstats.bukkit.Metrics
 import org.bstats.charts.SimplePie
 import org.bstats.charts.SingleLineChart
 import org.bukkit.event.HandlerList
+import org.bukkit.event.player.PlayerKickEvent
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
 
@@ -46,7 +48,7 @@ class DeathBanPlugin : JavaPlugin() {
 
     private lateinit var joinListener: JoinListener
     private var unregisterExpansion: (() -> Unit)? = null
-    private var updateNotification: String? = null
+    private var updateNotification: Component? = null
 
     override fun onEnable() {
         // Save default configs
@@ -273,7 +275,7 @@ class DeathBanPlugin : JavaPlugin() {
 
         UpdateChecker(this, SPIGOT_RESOURCE_ID) { current, latest ->
             updateNotification =
-                ColorUtil.colorize(
+                ColorUtil.component(
                     "&e[DeathBan Pro] &fUpdate available: &a$latest &f(running &c$current&f)",
                 )
             logger.warning("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
@@ -297,7 +299,7 @@ class DeathBanPlugin : JavaPlugin() {
             if (player != null && player.isOnline) {
                 val data = dataManager.get(uuid)
                 if (data?.isBanned() == true) {
-                    player.kickPlayer(messages.getKickMessage(data.currentBan!!))
+                    player.kick(messages.getKickMessage(data.currentBan!!), PlayerKickEvent.Cause.PLUGIN)
                 }
             }
             dataManager.removePendingBan(uuid)

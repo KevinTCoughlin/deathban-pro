@@ -7,6 +7,7 @@ import dev.coughlin.deathban.manager.BanManager
 import dev.coughlin.deathban.manager.OffenseManager
 import dev.coughlin.deathban.manager.SharedLivesManager
 import dev.coughlin.deathban.util.ColorUtil
+import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
@@ -424,7 +425,12 @@ class DeathBanCommand(
                 val themes = themeManager.getAllThemes()
                 sender.sendMessage(messages.prefixed("theme.list-header"))
                 themes.forEach { theme ->
-                    val active = if (theme.id == themeManager.getActiveThemeId()) ColorUtil.colorize(" &a(active)") else ""
+                    val active =
+                        if (theme.id == themeManager.getActiveThemeId()) {
+                            ColorUtil.component(" &a(active)")
+                        } else {
+                            Component.empty()
+                        }
                     sender.sendMessage(
                         messages.get(
                             "theme.list-item",
@@ -469,7 +475,7 @@ class DeathBanCommand(
                     return true
                 }
                 // Show preview
-                sender.sendTitle(theme.getBanTitle(), theme.getBanSubtitle("1h 30m"), 10, 70, 20)
+                sender.showTitle(ColorUtil.title(theme.getBanTitle(), theme.getBanSubtitle("1h 30m")))
                 sender.sendMessage(messages.prefixed("theme.preview", "theme" to theme.name))
             }
             else -> {

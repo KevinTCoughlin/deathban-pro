@@ -5,6 +5,18 @@ All notable changes to DeathBan Pro will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0-alpha.1] - 2026-11-24
+
+### Changed
+
+- Player-facing kicks, titles, and login denial use the Adventure API. `kickPlayer` is `kick(Component, PlayerKickEvent.Cause.PLUGIN)`, titles use `showTitle` with the same 10/70/20 tick timings, and ban checks run on `PlayerConnectionValidateLoginEvent` after the existing async preload.
+- `messages.yml` and theme strings are parsed as MiniMessage. Values that contain legacy `&` or `§` color codes, including the `§x` hex form, are read with Adventure's legacy serializer instead, so existing configs keep their colors. Placeholders are inserted as plain text.
+- Invalid `config.yml` values are reported together in one error. Startup and `/deathban reload` still reject the whole file, and a failed reload keeps the previous configuration.
+
+### Technical
+
+- Kotlin compilation treats all warnings, including Paper deprecations, as errors.
+
 ## [Unreleased]
 
 ### Added

@@ -202,4 +202,34 @@ class SettingsTest {
             Settings(createMockConfig(banDurations = mapOf("first" to "1h")))
         }
     }
+
+    @Test
+    fun `every invalid value is reported in one error`() {
+        val config = YamlConfiguration()
+        config.set("mode", "teams")
+        config.set("rolling-window.max-deaths", 0)
+        config.set("rolling-window.duration", "later")
+        config.set("shared-lives.max-lives", -1)
+        config.set("shared-lives.default-lives", 50)
+        config.set("shared-lives.empty-pool-ban", "soon")
+        config.set("offense-reset.clean-period", "0h")
+        config.set("ban-durations.first", "1h")
+        config.set("ban-durations.2", "later")
+
+        val message = assertThrows<IllegalArgumentException> { Settings(config) }.message!!
+
+        listOf(
+            "mode must be 'individual' or 'shared'",
+            "rolling-window.max-deaths must be greater than 0",
+            "rolling-window.duration:",
+            "shared-lives.max-lives must be greater than 0",
+            "shared-lives.default-lives must be between 0 and -1",
+            "shared-lives.empty-pool-ban:",
+            "offense-reset.clean-period:",
+            "ban-durations keys must be positive offense levels: 'first'",
+            "ban-durations.2:",
+        ).forEach { expected ->
+            assertTrue(message.contains(expected), message)
+        }
+    }
 }

@@ -7,9 +7,12 @@ import dev.coughlin.deathban.data.BanRecord
 import dev.coughlin.deathban.data.PlayerData
 import dev.coughlin.deathban.data.PlayerDataManager
 import dev.coughlin.deathban.theme.BanContext
+import dev.coughlin.deathban.util.ColorUtil
 import dev.coughlin.deathban.util.TimeUtil
+import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
+import org.bukkit.event.player.PlayerKickEvent
 import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
@@ -51,12 +54,11 @@ class BanManager(
         val theme = plugin.themeManager.getActiveTheme()
 
         // Show title
-        player.sendTitle(
-            theme.getBanTitle(),
-            theme.getBanSubtitle(TimeUtil.formatDuration(duration)),
-            10,
-            70,
-            20,
+        player.showTitle(
+            ColorUtil.title(
+                theme.getBanTitle(),
+                theme.getBanSubtitle(TimeUtil.formatDuration(duration)),
+            ),
         )
 
         // Play sound if enabled
@@ -83,7 +85,7 @@ class BanManager(
             )
 
         // Resolve the player again after the respawn delay. The death-screen entity can be gone.
-        scheduleKick(player.uniqueId, ban, theme.getKickMessage(context))
+        scheduleKick(player.uniqueId, ban, ColorUtil.component(theme.getKickMessage(context)))
 
         plugin.logger.info("Banned ${player.name} for ${TimeUtil.formatDuration(duration)} (offense level ${data.offenseLevel})")
     }
@@ -117,12 +119,11 @@ class BanManager(
         val theme = plugin.themeManager.getActiveTheme()
 
         // Show title
-        player.sendTitle(
-            theme.getBanTitle(),
-            theme.getBanSubtitle(TimeUtil.formatDuration(duration)),
-            10,
-            70,
-            20,
+        player.showTitle(
+            ColorUtil.title(
+                theme.getBanTitle(),
+                theme.getBanSubtitle(TimeUtil.formatDuration(duration)),
+            ),
         )
 
         // Play sound if enabled
@@ -153,7 +154,7 @@ class BanManager(
                 poolMax = pool?.maxLives ?: 0,
             )
 
-        scheduleKick(player.uniqueId, ban, theme.getKickMessage(context))
+        scheduleKick(player.uniqueId, ban, ColorUtil.component(theme.getKickMessage(context)))
 
         plugin.logger.info("Banned ${player.name} for ${TimeUtil.formatDuration(duration)} (shared pool empty)")
     }
@@ -161,7 +162,7 @@ class BanManager(
     private fun scheduleKick(
         playerId: UUID,
         ban: BanRecord,
-        message: String,
+        message: Component,
     ) {
         Bukkit.getScheduler().runTaskLater(
             plugin,
@@ -169,7 +170,7 @@ class BanManager(
                 val online = Bukkit.getPlayer(playerId) ?: return@Runnable
                 val current = dataManager.get(playerId) ?: return@Runnable
                 if (current.currentBan == ban && current.isBanned()) {
-                    online.kickPlayer(message)
+                    online.kick(message, PlayerKickEvent.Cause.PLUGIN)
                 }
             },
             60L,

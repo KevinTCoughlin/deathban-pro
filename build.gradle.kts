@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "dev.coughlin"
-version = providers.gradleProperty("version").getOrElse("2.0.0-alpha.1")
+version = providers.gradleProperty("version").getOrElse("2.1.0-alpha.1")
 
 // Paper API 26.3 build 258, verified stable on the Paper downloads API (2026-11-22).
 // Includes build 241 (join no longer clamps health to base max) and build 255 (fire calls BlockSpreadEvent).
@@ -352,8 +352,9 @@ kotlin {
     jvmToolchain(25)
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_25)
-        // Deprecation warnings stay visible. Paper's Adventure replacements for
-        // kick, title, login, and legacy color codes are a separate migration.
+        // Paper deprecations are compiler errors now that kick, title, login, and
+        // legacy color codes go through Adventure.
+        allWarningsAsErrors.set(true)
         extraWarnings.set(true)
         freeCompilerArgs.add("-Xjsr305=strict")
     }

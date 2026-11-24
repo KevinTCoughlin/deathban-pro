@@ -1,12 +1,14 @@
 package dev.coughlin.deathban.testutils
 
+import com.destroystokyo.paper.profile.PlayerProfile
 import io.mockk.every
 import io.mockk.mockk
+import io.papermc.paper.connection.PlayerLoginConnection
+import io.papermc.paper.event.connection.PlayerConnectionValidateLoginEvent
 import org.bukkit.entity.Player
 import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent
 import org.bukkit.event.player.PlayerJoinEvent
-import org.bukkit.event.player.PlayerLoginEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import java.util.UUID
 
@@ -57,10 +59,20 @@ object MockEventFactory {
         }
 
     /**
-     * Create a mock PlayerLoginEvent
+     * Create a mock connection validate event for the player logging in.
      */
-    fun createPlayerLoginEvent(player: Player): PlayerLoginEvent =
-        mockk<PlayerLoginEvent>(relaxed = true) {
-            every { getPlayer() } returns player
+    fun createConnectionValidateLoginEvent(player: Player): PlayerConnectionValidateLoginEvent {
+        val playerProfile =
+            mockk<PlayerProfile>(relaxed = true) {
+                every { id } returns player.uniqueId
+            }
+        val connection =
+            mockk<PlayerLoginConnection>(relaxed = true) {
+                every { authenticatedProfile } returns playerProfile
+                every { unsafeProfile } returns playerProfile
+            }
+        return mockk(relaxed = true) {
+            every { getConnection() } returns connection
         }
+    }
 }
