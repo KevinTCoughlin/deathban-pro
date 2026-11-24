@@ -41,7 +41,9 @@ class DeathBanCommand(
             "theme" -> return handleTheme(sender, args)
             "reload" -> return handleReload(sender)
             else -> {
-                sender.sendMessage(messages.getInvalidUsage("/deathban <check|history|reset|pardon|lives|team|theme|reload>"))
+                sender.sendMessage(
+                    messages.getInvalidUsage("/deathban <help|check|history|reset|pardon|lives|team|theme|reload>"),
+                )
                 return true
             }
         }
@@ -258,7 +260,7 @@ class DeathBanCommand(
 
         val manager = plugin.sharedLivesManager
         if (manager == null) {
-            sender.sendMessage(messages.prefixed("errors.no-permission"))
+            sender.sendMessage(messages.prefixed("errors.shared-mode-disabled"))
             return true
         }
 
@@ -338,7 +340,7 @@ class DeathBanCommand(
 
         val manager = plugin.sharedLivesManager
         if (manager == null) {
-            sender.sendMessage(messages.prefixed("errors.no-permission"))
+            sender.sendMessage(messages.prefixed("errors.shared-mode-disabled"))
             return true
         }
 
@@ -483,7 +485,18 @@ class DeathBanCommand(
             return true
         }
 
-        plugin.reload()
+        try {
+            plugin.reload()
+        } catch (e: IllegalArgumentException) {
+            sender.sendMessage(
+                messages.prefixed(
+                    "errors.invalid-config",
+                    "detail" to (e.message ?: "invalid configuration"),
+                ),
+            )
+            plugin.logger.warning("Rejected configuration reload: ${e.message}")
+            return true
+        }
         sender.sendMessage(messages.getReloadSuccess())
         plugin.logger.info("Configuration reloaded by ${sender.name}")
         return true

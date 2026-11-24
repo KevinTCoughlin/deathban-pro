@@ -5,6 +5,7 @@ import dev.coughlin.deathban.command.DeathBanTabCompleter
 import dev.coughlin.deathban.config.BanMode
 import dev.coughlin.deathban.config.Messages
 import dev.coughlin.deathban.config.Settings
+import dev.coughlin.deathban.config.reloadSettings
 import dev.coughlin.deathban.data.PlayerDataManager
 import dev.coughlin.deathban.listener.DeathListener
 import dev.coughlin.deathban.listener.JoinListener
@@ -17,6 +18,7 @@ import dev.coughlin.deathban.util.UpdateChecker
 import org.bstats.bukkit.Metrics
 import org.bstats.charts.SimplePie
 import org.bstats.charts.SingleLineChart
+import org.bukkit.event.HandlerList
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
 
@@ -53,8 +55,16 @@ class DeathBanPlugin : JavaPlugin() {
             saveResource("messages.yml", false)
         }
 
-        // Initialize configuration
-        settings = Settings(config)
+        // Initialize configuration. Invalid files disable the plugin with one message
+        // instead of continuing with a half-initialized server.
+        try {
+            settings = Settings(config)
+        } catch (e: IllegalArgumentException) {
+            logger.severe("Invalid config.yml: ${e.message}")
+            logger.severe("DeathBan Pro was not enabled. Fix plugins/DeathBanPro/config.yml and restart.")
+            server.pluginManager.disablePlugin(this)
+            return
+        }
         messages = Messages(File(dataFolder, "messages.yml"))
 
         // Initialize theme manager
@@ -116,7 +126,7 @@ class DeathBanPlugin : JavaPlugin() {
         // Process any pending bans from crash recovery
         processPendingBans()
 
-        logger.info("DeathBan Pro v${description.version} enabled!")
+        logger.info("DeathBan Pro v${pluginMeta.version} enabled!")
         logger.info("Mode: ${settings.mode.name.lowercase()}")
         logger.info("Theme: ${themeManager.getActiveTheme().name}")
         if (settings.mode == BanMode.INDIVIDUAL) {
@@ -129,19 +139,24 @@ class DeathBanPlugin : JavaPlugin() {
     }
 
     override fun onDisable() {
+        // Enable can fail before managers exist. Bukkit still calls onDisable after that.
+        server.scheduler.cancelTasks(this)
+        HandlerList.unregisterAll(this)
         unregisterExpansion?.invoke()
         unregisterExpansion = null
-        // Flush any dirty data still in memory to disk before shutdown
-        dataManager.saveAll()
+        if (this::dataManager.isInitialized) {
+            dataManager.saveAll()
+            dataManager.clearCache()
+        }
         sharedLivesManager?.saveAll()
-        themeManager.close()
-        dataManager.clearCache()
+        if (this::themeManager.isInitialized) {
+            themeManager.close()
+        }
         logger.info("DeathBan Pro disabled")
     }
 
     fun reload() {
-        reloadConfig()
-        settings = Settings(config)
+        settings = reloadSettings(config) { reloadConfig() }
         messages.reload()
         themeManager.reload()
         themeManager.setActiveTheme(settings.themeId)
@@ -174,8 +189,7 @@ class DeathBanPlugin : JavaPlugin() {
     }
 
     private fun unregisterListeners() {
-        org.bukkit.event.HandlerList
-            .unregisterAll(this)
+        HandlerList.unregisterAll(this)
     }
 
     private fun registerListeners() {
@@ -252,7 +266,7 @@ class DeathBanPlugin : JavaPlugin() {
         }
 
         // Skip update check for SNAPSHOT/beta versions during development
-        if (description.version.contains("SNAPSHOT") || description.version.contains("beta")) {
+        if (pluginMeta.version.contains("SNAPSHOT") || pluginMeta.version.contains("beta")) {
             logger.info("Skipping update check for development version")
             return
         }

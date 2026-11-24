@@ -7,7 +7,7 @@ Thank you for your interest in contributing to DeathBan Pro! This document provi
 ### Prerequisites
 
 - JDK 25 (required). Java 21 cannot build or run this version; Minecraft 1.21 servers should use release v1.3.0-alpha.2
-- Gradle 9.8.1 (wrapper included)
+- Gradle 9.9.2 (wrapper included)
 - A Paper 26.3 server for testing (the devcontainer uses build 258)
 
 ### Setting Up Development Environment
@@ -70,6 +70,7 @@ docs: update README with new commands
 - Write unit tests for new functionality
 - Ensure all tests pass before submitting PR
 - Manual test on a Minecraft server when possible
+- `bash scripts/paper-smoke.sh` boots Paper 26.3 build 258 with the built jar and checks that the plugin enables. CI runs the same script.
 
 ## Submitting Changes
 

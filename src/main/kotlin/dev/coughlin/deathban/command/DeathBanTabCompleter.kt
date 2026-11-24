@@ -2,11 +2,13 @@ package dev.coughlin.deathban.command
 
 import dev.coughlin.deathban.DeathBanPlugin
 import dev.coughlin.deathban.data.PlayerDataManager
+import dev.coughlin.deathban.data.SharedLivesPool
 import dev.coughlin.deathban.manager.BanManager
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabCompleter
+import org.bukkit.plugin.IllegalPluginAccessException
 
 class DeathBanTabCompleter(
     private val plugin: DeathBanPlugin,
@@ -37,9 +39,11 @@ class DeathBanTabCompleter(
             add("help")
             if (sender.hasPermission("deathban.check")) add("check")
             if (sender.hasPermission("deathban.use")) {
-                add("lives")
-                add("team")
                 add("theme")
+                if (plugin.sharedLivesManager != null) {
+                    add("lives")
+                    add("team")
+                }
             }
             if (sender.hasPermission("deathban.admin")) {
                 add("history")
@@ -56,7 +60,7 @@ class DeathBanTabCompleter(
         when (subcommand.lowercase()) {
             "check" ->
                 if (sender.hasPermission("deathban.check.others")) {
-                    getOnlinePlayerNames()
+                    (getOnlinePlayerNames() + getStoredPlayerNames()).distinct()
                 } else {
                     emptyList()
                 }
@@ -76,13 +80,21 @@ class DeathBanTabCompleter(
                 }
 
             "lives" ->
-                buildList {
-                    if (sender.hasPermission("deathban.use") && sender.hasPermission("deathban.lives.add")) add("add")
-                    if (sender.hasPermission("deathban.use") && sender.hasPermission("deathban.admin")) add("set")
+                if (plugin.sharedLivesManager == null) {
+                    emptyList()
+                } else {
+                    buildList {
+                        if (sender.hasPermission("deathban.use") && sender.hasPermission("deathban.lives.add")) add("add")
+                        if (sender.hasPermission("deathban.use") && sender.hasPermission("deathban.admin")) add("set")
+                    }
                 }
 
             "team" ->
-                if (sender.hasPermission("deathban.use") && sender.hasPermission("deathban.team.manage")) {
+                if (
+                    plugin.sharedLivesManager != null &&
+                    sender.hasPermission("deathban.use") &&
+                    sender.hasPermission("deathban.team.manage")
+                ) {
                     listOf("create", "join", "leave")
                 } else {
                     emptyList()
@@ -109,6 +121,16 @@ class DeathBanTabCompleter(
                 when (secondArg.lowercase()) {
                     "set", "preview" -> plugin.themeManager.getAvailableThemeIds()
                     else -> emptyList()
+                }
+            "team" ->
+                if (secondArg.equals("join", ignoreCase = true) && sender.hasPermission("deathban.team.manage")) {
+                    plugin.sharedLivesManager
+                        ?.getAllPools()
+                        ?.map { it.id }
+                        ?.filter { it != SharedLivesPool.GLOBAL_POOL_ID }
+                        .orEmpty()
+                } else {
+                    emptyList()
                 }
             else -> emptyList()
         }
@@ -140,18 +162,24 @@ class DeathBanTabCompleter(
         plugin.server.scheduler.runTaskAsynchronously(
             plugin,
             Runnable {
+                if (!plugin.isEnabled) return@Runnable
                 val storedUuids = dataManager.getAllStoredPlayers()
                 val bannedUuids = banManager.getActiveBans()
-
-                plugin.server.scheduler.runTask(
-                    plugin,
-                    Runnable {
-                        cachedStoredNames = storedUuids.mapNotNull { Bukkit.getOfflinePlayer(it).name }
-                        cachedBannedNames = bannedUuids.mapNotNull { Bukkit.getOfflinePlayer(it).name }
-                    },
-                )
+                runOnMainThread {
+                    cachedStoredNames = storedUuids.mapNotNull { Bukkit.getOfflinePlayer(it).name }
+                    cachedBannedNames = bannedUuids.mapNotNull { Bukkit.getOfflinePlayer(it).name }
+                }
             },
         )
+    }
+
+    private fun runOnMainThread(task: Runnable) {
+        if (!plugin.isEnabled) return
+        try {
+            plugin.server.scheduler.runTask(plugin, task)
+        } catch (e: IllegalPluginAccessException) {
+            plugin.logger.fine("Dropped tab-complete refresh after disable: ${e.message}")
+        }
     }
 
     private fun filterStartsWith(

@@ -21,7 +21,7 @@ object MockSpigot {
     ): Plugin =
         mockk<Plugin>(relaxed = true) {
             every { this@mockk.name } returns name
-            every { description.version } returns version
+            every { pluginMeta.version } returns version
             every { isEnabled } returns true
             every { logger } returns mockk(relaxed = true)
         }
@@ -35,7 +35,7 @@ object MockSpigot {
     ): DeathBanPlugin =
         mockk<DeathBanPlugin>(relaxed = true) {
             every { this@mockk.name } returns name
-            every { description.version } returns version
+            every { pluginMeta.version } returns version
             every { isEnabled } returns true
             every { logger } returns mockk(relaxed = true)
         }

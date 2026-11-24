@@ -28,11 +28,16 @@ warnings:
 commands:
   help: |
     &6&lDeathBan Pro Commands
+    &e/deathban help &7- Show this help
     &e/deathban check [player] &7- Check ban status
+    &e/deathban history <player> [page] &7- View recent ban events
     &e/deathban reset <player> &7- Reset offense data
-    &e/deathban pardon <player> &7- Remove active ban
-    &e/deathban lives &7- Check shared lives pool
-    &e/deathban lives add &7- Add a life to the pool
+    &e/deathban pardon <player> &7- Remove an active ban
+    &e/deathban lives &7- Show the shared lives pool
+    &e/deathban lives add &7- Add a life to your pool
+    &e/deathban lives set <amount> &7- Set the global pool
+    &e/deathban team <create|join|leave> &7- Manage a team pool
+    &e/deathban theme [list|set|preview] &7- Show or change the theme
     &e/deathban reload &7- Reload configuration
   check-self: "&7Your offense level: &e{offense_level}&7, Deaths in window: &e{deaths}/{max}"
   check-other: "&7{player}'s offense level: &e{offense_level}&7, Deaths: &e{deaths}/{max}"
@@ -75,6 +80,8 @@ theme:
 
 errors:
   no-permission: "&cYou don't have permission to do that."
+  shared-mode-disabled: "&cShared lives mode is not enabled. Set mode: shared in config.yml, then reload."
+  invalid-config: "&cConfiguration was not reloaded: {detail}"
   player-not-found: "&cPlayer not found: {player}"
   invalid-usage: "&cUsage: {usage}"
   invalid-team-name: "&cTeam names must be 1-32 characters using only letters, numbers, underscores, or hyphens."

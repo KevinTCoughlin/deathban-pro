@@ -16,7 +16,7 @@ class DeathBanExpansion(
 
     override fun getAuthor(): String = "kevintcoughlin"
 
-    override fun getVersion(): String = plugin.description.version
+    override fun getVersion(): String = plugin.pluginMeta.version
 
     override fun persist(): Boolean = true
 

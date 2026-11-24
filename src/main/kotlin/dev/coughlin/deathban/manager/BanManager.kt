@@ -73,7 +73,6 @@ class BanManager(
             }
         }
 
-        // Schedule kick after respawn sequence completes
         val context =
             BanContext(
                 playerName = player.name,
@@ -83,15 +82,8 @@ class BanManager(
                 returnTime = TimeUtil.formatInstant(ban.endTime),
             )
 
-        Bukkit.getScheduler().runTaskLater(
-            plugin,
-            Runnable {
-                if (player.isOnline && dataManager.get(player.uniqueId)?.let { it.currentBan == ban && it.isBanned() } == true) {
-                    player.kickPlayer(theme.getKickMessage(context))
-                }
-            },
-            60L,
-        ) // 3 seconds after death
+        // Resolve the player again after the respawn delay. The death-screen entity can be gone.
+        scheduleKick(player.uniqueId, ban, theme.getKickMessage(context))
 
         plugin.logger.info("Banned ${player.name} for ${TimeUtil.formatDuration(duration)} (offense level ${data.offenseLevel})")
     }
@@ -161,18 +153,27 @@ class BanManager(
                 poolMax = pool?.maxLives ?: 0,
             )
 
-        // Schedule kick after respawn sequence completes
+        scheduleKick(player.uniqueId, ban, theme.getKickMessage(context))
+
+        plugin.logger.info("Banned ${player.name} for ${TimeUtil.formatDuration(duration)} (shared pool empty)")
+    }
+
+    private fun scheduleKick(
+        playerId: UUID,
+        ban: BanRecord,
+        message: String,
+    ) {
         Bukkit.getScheduler().runTaskLater(
             plugin,
             Runnable {
-                if (player.isOnline && dataManager.get(player.uniqueId)?.let { it.currentBan == ban && it.isBanned() } == true) {
-                    player.kickPlayer(theme.getKickMessage(context))
+                val online = Bukkit.getPlayer(playerId) ?: return@Runnable
+                val current = dataManager.get(playerId) ?: return@Runnable
+                if (current.currentBan == ban && current.isBanned()) {
+                    online.kickPlayer(message)
                 }
             },
             60L,
         )
-
-        plugin.logger.info("Banned ${player.name} for ${TimeUtil.formatDuration(duration)} (shared pool empty)")
     }
 
     fun pardon(

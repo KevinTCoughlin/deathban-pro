@@ -2,6 +2,7 @@ package dev.coughlin.deathban.command
 
 import dev.coughlin.deathban.DeathBanPlugin
 import dev.coughlin.deathban.config.Messages
+import dev.coughlin.deathban.data.SharedLivesPool
 import dev.coughlin.deathban.manager.SharedLivesManager
 import io.mockk.every
 import io.mockk.mockk
@@ -11,6 +12,8 @@ import org.bukkit.entity.Player
 import org.junit.jupiter.api.Test
 import java.util.UUID
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class SharedLifePermissionsTest {
     private val plugin = mockk<DeathBanPlugin>(relaxed = true)
@@ -68,8 +71,51 @@ class SharedLifePermissionsTest {
     }
 
     @Test
+    fun `lives command explains when shared mode is off`() {
+        every { player.uniqueId } returns playerId
+        every { player.hasPermission(any<String>()) } answers { firstArg<String>() == "deathban.use" }
+        every { plugin.sharedLivesManager } returns null
+        DeathBanCommand(plugin, messages, mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true))
+            .onCommand(player, command, "deathban", arrayOf("lives"))
+        verify(exactly = 0) { manager.addLife(any(), any()) }
+        verify(exactly = 1) { messages.prefixed("errors.shared-mode-disabled") }
+    }
+
+    @Test
+    fun `completion omits shared commands when shared mode is off`() {
+        every { player.hasPermission(any<String>()) } returns true
+        every { plugin.sharedLivesManager } returns null
+        val options = DeathBanTabCompleter(plugin, mockk(), mockk()).onTabComplete(player, command, "deathban", arrayOf(""))
+        assertFalse(options.contains("lives"))
+        assertFalse(options.contains("team"))
+        assertTrue(options.contains("reload"))
+    }
+
+    @Test
+    fun `team join completion suggests existing team ids`() {
+        every { player.hasPermission(any<String>()) } answers {
+            firstArg<String>() == "deathban.use" || firstArg<String>() == "deathban.team.manage"
+        }
+        every { plugin.sharedLivesManager } returns manager
+        every { manager.getAllPools() } returns
+            listOf(
+                SharedLivesPool("global", 1, 2),
+                SharedLivesPool("raiders", 1, 2),
+            )
+        val options =
+            DeathBanTabCompleter(plugin, mockk(), mockk()).onTabComplete(
+                player,
+                command,
+                "deathban",
+                arrayOf("team", "join", ""),
+            )
+        assertEquals(listOf("raiders"), options)
+    }
+
+    @Test
     fun `completion hides privileged shared life actions`() {
         every { player.hasPermission(any<String>()) } answers { firstArg<String>() == "deathban.use" }
+        every { plugin.sharedLivesManager } returns manager
         val completer = DeathBanTabCompleter(plugin, mockk(), mockk())
         assertEquals(emptyList(), completer.onTabComplete(player, command, "deathban", arrayOf("lives", "")))
         assertEquals(emptyList(), completer.onTabComplete(player, command, "deathban", arrayOf("team", "")))

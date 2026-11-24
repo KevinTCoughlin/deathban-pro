@@ -1,4 +1,8 @@
+import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
+import java.util.zip.ZipOutputStream
 
 plugins {
     kotlin("jvm") version "2.4.21"
@@ -135,6 +139,29 @@ tasks {
             // Kotlin runtime helpers and external themes can reference classes
             // that static minimization cannot safely discover.
             exclude(dependency("org.jetbrains.kotlin:kotlin-stdlib.*"))
+        }
+
+        // Shadow appends relocated classes after Gradle's archive sort, so the entry
+        // order still changes between builds. Rewrite the finished jar in a fixed order.
+        doLast {
+            val jarFile = archiveFile.get().asFile
+            val sorted = temporaryDir.resolve("${jarFile.name}.sorted")
+            ZipFile(jarFile).use { zip ->
+                val names = zip.entries().toList().map { it.name }
+                val ordered =
+                    names.filter { it == "META-INF/MANIFEST.MF" } +
+                        names.filter { it != "META-INF/MANIFEST.MF" }.sorted()
+                ZipOutputStream(sorted.outputStream()).use { out ->
+                    ordered.forEach { name ->
+                        val entry = ZipEntry(name)
+                        entry.time = 0L
+                        out.putNextEntry(entry)
+                        zip.getInputStream(zip.getEntry(name)).use { input -> input.copyTo(out) }
+                        out.closeEntry()
+                    }
+                }
+            }
+            sorted.copyTo(jarFile, overwrite = true)
         }
     }
 
@@ -308,9 +335,26 @@ java {
     }
 }
 
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.encoding = "UTF-8"
+}
+
+tasks.withType<AbstractArchiveTask>().configureEach {
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
+}
+
 kotlin {
     jvmToolchain(25)
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_25)
+        // Deprecation warnings stay visible. Paper's Adventure replacements for
+        // kick, title, login, and legacy color codes are a separate migration.
+        extraWarnings.set(true)
+        freeCompilerArgs.add("-Xjsr305=strict")
     }
 }
