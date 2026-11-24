@@ -2,6 +2,7 @@ package dev.coughlin.deathban.listener
 
 import dev.coughlin.deathban.config.Messages
 import dev.coughlin.deathban.data.PlayerDataManager
+import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
@@ -60,26 +61,21 @@ class JoinListener(
     @EventHandler
     fun onPlayerJoin(event: PlayerJoinEvent) {
         val player = event.player
-        val data = dataManager.get(player.uniqueId)
+        val playerId = player.uniqueId
+        val data = dataManager.get(playerId)
 
         // Show return message if ban just expired
-        if (data != null && expiredBanReturns.remove(player.uniqueId)) {
-            plugin.server.scheduler.runTaskLater(
-                plugin,
-                Runnable {
-                    if (player.isOnline) {
-                        player.sendTitle(
-                            messages.getReturnTitle(),
-                            messages.getReturnSubtitle(),
-                            10,
-                            70,
-                            20,
-                        )
-                        player.sendMessage(messages.getReturnMessage())
-                    }
-                },
-                20L,
-            )
+        if (data != null && expiredBanReturns.remove(playerId)) {
+            later(playerId, 20L) { online ->
+                online.sendTitle(
+                    messages.getReturnTitle(),
+                    messages.getReturnSubtitle(),
+                    10,
+                    70,
+                    20,
+                )
+                online.sendMessage(messages.getReturnMessage())
+            }
         }
 
         // Notify of pardon (set by admin while offline)
@@ -87,28 +83,32 @@ class JoinListener(
             data.pendingPardon = false
             dataManager.saveAsync(data)
 
-            plugin.server.scheduler.runTaskLater(
-                plugin,
-                Runnable {
-                    if (player.isOnline) {
-                        player.sendMessage(messages.getPardonNotification())
-                    }
-                },
-                40L,
-            )
+            later(playerId, 40L) { online ->
+                online.sendMessage(messages.getPardonNotification())
+            }
         }
 
         // Notify ops of updates
-        if (player.hasPermission("deathban.admin") && updateNotification != null) {
-            plugin.server.scheduler.runTaskLater(
-                plugin,
-                Runnable {
-                    if (player.isOnline) {
-                        player.sendMessage(updateNotification!!)
-                    }
-                },
-                60L,
-            )
+        val notice = updateNotification
+        if (player.hasPermission("deathban.admin") && notice != null) {
+            later(playerId, 60L) { online ->
+                online.sendMessage(notice)
+            }
         }
+    }
+
+    private fun later(
+        playerId: UUID,
+        delayTicks: Long,
+        action: (Player) -> Unit,
+    ) {
+        plugin.server.scheduler.runTaskLater(
+            plugin,
+            Runnable {
+                val online = plugin.server.getPlayer(playerId) ?: return@Runnable
+                action(online)
+            },
+            delayTicks,
+        )
     }
 }

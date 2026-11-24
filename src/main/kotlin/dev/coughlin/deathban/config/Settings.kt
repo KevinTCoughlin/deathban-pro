@@ -100,3 +100,21 @@ class Settings(
         return enabledWorlds.contains(worldName)
     }
 }
+
+/**
+ * Reloads [config] and parses it.
+ * A configuration that fails validation leaves the previous in-memory values in place.
+ */
+internal fun reloadSettings(
+    config: FileConfiguration,
+    reload: () -> Unit,
+): Settings {
+    val snapshot = config.saveToString()
+    reload()
+    return try {
+        Settings(config)
+    } catch (e: IllegalArgumentException) {
+        config.loadFromString(snapshot)
+        throw e
+    }
+}

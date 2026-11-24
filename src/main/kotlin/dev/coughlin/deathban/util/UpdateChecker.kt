@@ -1,5 +1,6 @@
 package dev.coughlin.deathban.util
 
+import org.bukkit.plugin.IllegalPluginAccessException
 import org.bukkit.plugin.Plugin
 import java.net.URI
 
@@ -14,15 +15,20 @@ class UpdateChecker(
             Runnable {
                 try {
                     val latestVersion = fetchLatestVersion()
-                    val currentVersion = plugin.description.version.removeSuffix("-SNAPSHOT")
+                    val currentVersion = plugin.pluginMeta.version.removeSuffix("-SNAPSHOT")
 
                     if (isNewerVersion(latestVersion, currentVersion)) {
-                        plugin.server.scheduler.runTask(
-                            plugin,
-                            Runnable {
-                                onUpdateFound(currentVersion, latestVersion)
-                            },
-                        )
+                        if (!plugin.isEnabled) return@Runnable
+                        try {
+                            plugin.server.scheduler.runTask(
+                                plugin,
+                                Runnable {
+                                    onUpdateFound(currentVersion, latestVersion)
+                                },
+                            )
+                        } catch (e: IllegalPluginAccessException) {
+                            plugin.logger.fine("Skipping update notification after disable: ${e.message}")
+                        }
                     } else {
                         plugin.logger.info("Running latest version ($currentVersion)")
                     }
@@ -40,7 +46,7 @@ class UpdateChecker(
             .apply {
                 connectTimeout = 5000
                 readTimeout = 5000
-                setRequestProperty("User-Agent", "DeathBanPro/${plugin.description.version}")
+                setRequestProperty("User-Agent", "DeathBanPro/${plugin.pluginMeta.version}")
             }.getInputStream()
             .bufferedReader()
             .use { it.readText().trim() }

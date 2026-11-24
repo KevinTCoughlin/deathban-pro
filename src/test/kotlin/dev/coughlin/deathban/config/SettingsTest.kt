@@ -4,6 +4,7 @@ import io.mockk.every
 import io.mockk.mockk
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.FileConfiguration
+import org.bukkit.configuration.file.YamlConfiguration
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
@@ -163,7 +164,24 @@ class SettingsTest {
 
     @Test
     fun `invalid mode is rejected`() {
-        assertThrows<IllegalArgumentException> { Settings(createMockConfig(mode = "typo")) }
+        val error = assertThrows<IllegalArgumentException> { Settings(createMockConfig(mode = "typo")) }
+        assertTrue(error.message!!.contains("individual"))
+        assertTrue(error.message!!.contains("shared"))
+    }
+
+    @Test
+    fun `failed reload keeps the previous configuration`() {
+        val config = YamlConfiguration()
+        config.set("mode", "shared")
+        assertEquals(BanMode.SHARED, reloadSettings(config) { }.mode)
+
+        val error =
+            assertThrows<IllegalArgumentException> {
+                reloadSettings(config) { config.set("mode", "typo") }
+            }
+        assertTrue(error.message!!.contains("individual"))
+        assertEquals("shared", config.getString("mode"))
+        assertEquals(BanMode.SHARED, Settings(config).mode)
     }
 
     @Test

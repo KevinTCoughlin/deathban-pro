@@ -57,6 +57,7 @@ class BanManagerTest {
         player = mockk(relaxed = true)
         every { player.uniqueId } returns UUID.randomUUID()
         every { player.isOnline } returns true
+        every { Bukkit.getPlayer(player.uniqueId) } returns player
     }
 
     @AfterEach
@@ -84,6 +85,18 @@ class BanManagerTest {
         kotlin.test.assertEquals("Moderator", reloaded.history[1].actor)
         kotlin.test.assertEquals("Owner", reloaded.history[2].actor)
         assertNull(reloaded.currentBan)
+    }
+
+    @Test
+    fun `delayed kick does nothing when the player is offline`() {
+        every { Bukkit.getPlayer(player.uniqueId) } returns null
+        val data = dataManager.getOrCreate(player.uniqueId)
+        data.offenseLevel = 1
+        manager.applyBan(player, data, "FALL")
+
+        kick.run()
+
+        verify(exactly = 0) { player.kickPlayer(any()) }
     }
 
     @Test
