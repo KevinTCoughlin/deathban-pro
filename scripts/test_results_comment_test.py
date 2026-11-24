@@ -123,7 +123,7 @@ class SummarizeTests(unittest.TestCase):
         self.assertNotIn("not this stack", text)
         self.assertNotIn("\nline 2", text)
         self.assertIn("`abcdef123456`", text)
-        self.assertIn("updated in place", text)
+        self.assertIn("updated in place when CI finishes", text)
 
     def test_nested_suite_counts_each_case_once(self):
         directory, root = write_tree({"suite.xml": NESTED})

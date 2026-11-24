@@ -316,7 +316,7 @@ def render(
     if footer:
         lines.extend([" · ".join(footer), ""])
     if include_marker:
-        lines.extend(["This comment is updated in place on each push.", ""])
+        lines.extend(["This comment is updated in place when CI finishes.", ""])
     text = "\n".join(lines).rstrip() + "\n"
     if len(text) > MAX_BODY:
         text = text[: MAX_BODY - 80].rstrip() + "\n\n(comment truncated)\n"
