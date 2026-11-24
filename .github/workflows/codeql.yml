@@ -38,7 +38,15 @@ jobs:
           build-mode: manual
 
       - name: Build
-        run: chmod +x gradlew && ./gradlew classes --no-daemon
+        # The CodeQL tracer makes the Kotlin compiler's default heap thrash.
+        # Keep the larger heap in this job so the traced compile can finish.
+        run: |
+          chmod +x gradlew
+          printf '%s\n' \
+            'org.gradle.jvmargs=-Xmx3g' \
+            'kotlin.compiler.execution.strategy=in-process' \
+            >> gradle.properties
+          ./gradlew classes --no-daemon
 
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@1bd86f2fdb4b86187fa4059f16f31a3202acc9ea # v4.39.4
