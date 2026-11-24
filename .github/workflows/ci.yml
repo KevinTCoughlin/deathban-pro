@@ -69,11 +69,21 @@ jobs:
       - name: Test release version validation
         run: bash scripts/test-validate-release-version.sh
 
+      - name: Test JUnit comment summary
+        run: bash scripts/test-test-results-comment.sh
+
       - name: Build
         run: ./gradlew build --no-daemon
 
       - name: Run tests
         run: ./gradlew test --no-daemon
+
+      - name: Summarize test results
+        if: always()
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: python3 scripts/test_results_comment.py summarize build/test-results/test >> "$GITHUB_STEP_SUMMARY"
 
       - name: Generate coverage report
         run: ./gradlew jacocoTestReport --no-daemon
@@ -94,6 +104,14 @@ jobs:
         with:
           name: test-results
           path: build/reports/tests/
+
+      - name: Upload JUnit XML
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: junit-xml
+          path: build/test-results/test/*.xml
+          if-no-files-found: ignore
 
       - name: Upload coverage report
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -160,3 +178,47 @@ jobs:
 
       - name: Run ktlint
         run: ./gradlew ktlintCheck --no-daemon
+
+  # One comment for same-repo pull requests. The build job stays read-only.
+  # Scorecard v5.7 (scorecard-action v2.6.0) warns when the checks scope is
+  # write, including at job level, and does not treat pull-requests write as
+  # one of those scopes. Fork and Dependabot tokens cannot write from this
+  # event; pr-test-results.yml comments for those after CI completes.
+  test-results:
+    name: Test result comment
+    needs: build
+    if: >-
+      always() &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]' &&
+      (needs.build.result == 'success' || needs.build.result == 'failure')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download JUnit XML
+        continue-on-error: true
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: junit-xml
+          path: junit-xml
+
+      - name: Publish pull request comment
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          RESULTS_DIR: junit-xml
+          BUILD_RESULT: ${{ needs.build.result }}
+        run: python3 scripts/test_results_comment.py post
