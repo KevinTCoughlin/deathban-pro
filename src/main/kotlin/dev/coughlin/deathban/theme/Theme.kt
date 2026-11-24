@@ -35,7 +35,11 @@ interface Theme {
     /** Theme version */
     val version: String
 
-    // Ban screen customization
+    /**
+     * Player-facing strings are parsed when displayed. MiniMessage is used unless
+     * the string contains legacy `&` or `§` color codes, which keep existing themes'
+     * colors. Placeholders are already resolved by the theme.
+     */
     fun getBanTitle(): String
 
     fun getBanSubtitle(duration: String): String

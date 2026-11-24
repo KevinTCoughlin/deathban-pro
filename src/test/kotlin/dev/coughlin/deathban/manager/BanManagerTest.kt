@@ -8,11 +8,16 @@ import dev.coughlin.deathban.theme.DefaultTheme
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import io.mockk.slot
 import io.mockk.unmockkStatic
 import io.mockk.verify
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
+import net.kyori.adventure.title.Title
 import org.bukkit.Bukkit
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
+import org.bukkit.event.player.PlayerKickEvent
 import org.bukkit.scheduler.BukkitScheduler
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -20,9 +25,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.io.IOException
+import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 import java.util.logging.Logger
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
@@ -96,7 +103,7 @@ class BanManagerTest {
 
         kick.run()
 
-        verify(exactly = 0) { player.kickPlayer(any()) }
+        verify(exactly = 0) { player.kick(any<Component>(), any<PlayerKickEvent.Cause>()) }
     }
 
     @Test
@@ -107,7 +114,15 @@ class BanManagerTest {
 
         kick.run()
 
-        verify(exactly = 1) { player.kickPlayer(any()) }
+        val shown = slot<Title>()
+        verify(exactly = 1) { player.showTitle(capture(shown)) }
+        val times = shown.captured.times()
+        assertEquals(Duration.ofMillis(500), times?.fadeIn())
+        assertEquals(Duration.ofMillis(3_500), times?.stay())
+        assertEquals(Duration.ofMillis(1_000), times?.fadeOut())
+        val reason = slot<Component>()
+        verify(exactly = 1) { player.kick(capture(reason), PlayerKickEvent.Cause.PLUGIN) }
+        assertTrue(PlainTextComponentSerializer.plainText().serialize(reason.captured).contains("Death Ban"))
     }
 
     @Test
@@ -149,7 +164,7 @@ class BanManagerTest {
 
         kick.run()
 
-        verify(exactly = 0) { player.kickPlayer(any()) }
+        verify(exactly = 0) { player.kick(any<Component>(), any<PlayerKickEvent.Cause>()) }
     }
 
     @Test
@@ -162,7 +177,7 @@ class BanManagerTest {
 
         kick.run()
 
-        verify(exactly = 0) { player.kickPlayer(any()) }
+        verify(exactly = 0) { player.kick(any<Component>(), any<PlayerKickEvent.Cause>()) }
     }
 
     @Test
@@ -173,7 +188,7 @@ class BanManagerTest {
 
         kick.run()
 
-        verify(exactly = 0) { player.kickPlayer(any()) }
+        verify(exactly = 0) { player.kick(any<Component>(), any<PlayerKickEvent.Cause>()) }
     }
 
     @Test
@@ -185,7 +200,7 @@ class BanManagerTest {
         assertFailsWith<IOException> { manager.applyBan(player, data, "FALL") }
 
         assertNull(dataManager.get(player.uniqueId)!!.currentBan)
-        verify(exactly = 0) { player.sendTitle(any(), any(), any(), any(), any()) }
+        verify(exactly = 0) { player.showTitle(any<Title>()) }
         assertTrue(!this::kick.isInitialized)
     }
 

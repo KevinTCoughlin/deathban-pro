@@ -3,6 +3,8 @@ package dev.coughlin.deathban.config
 import dev.coughlin.deathban.data.BanRecord
 import dev.coughlin.deathban.util.ColorUtil
 import dev.coughlin.deathban.util.TimeUtil
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.TextReplacementConfig
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
 import java.time.Duration
@@ -19,35 +21,30 @@ class Messages(
             }
         }
 
-    val prefix: String get() = ColorUtil.colorize(config.getString("prefix") ?: "&8[&cDeathBan&8]&r ")
+    val prefix: Component
+        get() = ColorUtil.component(config.getString("prefix") ?: "&8[&cDeathBan&8]&r ")
 
     fun reload() {
         config = load()
     }
 
-    fun get(path: String): String = ColorUtil.colorize(config.getString(path) ?: "Missing message: $path")
+    fun get(path: String): Component = render(config.getString(path) ?: "Missing message: $path")
 
     fun get(
         path: String,
         vararg replacements: Pair<String, Any>,
-    ): String {
-        var message = get(path)
-        for ((key, value) in replacements) {
-            message = message.replace("{$key}", value.toString())
-        }
-        return message
-    }
+    ): Component = render(config.getString(path) ?: "Missing message: $path", replacements)
 
     fun prefixed(
         path: String,
         vararg replacements: Pair<String, Any>,
-    ): String = prefix + get(path, *replacements)
+    ): Component = prefix.append(get(path, *replacements))
 
-    fun getBanTitle(): String = get("ban.title")
+    fun getBanTitle(): Component = get("ban.title")
 
-    fun getBanSubtitle(duration: Duration): String = get("ban.subtitle", "duration" to TimeUtil.formatDuration(duration))
+    fun getBanSubtitle(duration: Duration): Component = get("ban.subtitle", "duration" to TimeUtil.formatDuration(duration))
 
-    fun getKickMessage(ban: BanRecord): String {
+    fun getKickMessage(ban: BanRecord): Component {
         val remaining = TimeUtil.durationUntil(ban.endTime)
         return get(
             "ban.kick-message",
@@ -57,23 +54,23 @@ class Messages(
         )
     }
 
-    fun getReturnTitle(): String = get("return.title")
+    fun getReturnTitle(): Component = get("return.title")
 
-    fun getReturnSubtitle(): String = get("return.subtitle")
+    fun getReturnSubtitle(): Component = get("return.subtitle")
 
-    fun getReturnMessage(): String = prefixed("return.message")
+    fun getReturnMessage(): Component = prefixed("return.message")
 
-    fun getWarningFinalLife(): String = prefixed("warnings.final-life")
+    fun getWarningFinalLife(): Component = prefixed("warnings.final-life")
 
-    fun getWarningNearLimit(remaining: Int): String = prefixed("warnings.near-limit", "remaining" to remaining)
+    fun getWarningNearLimit(remaining: Int): Component = prefixed("warnings.near-limit", "remaining" to remaining)
 
-    fun getHelp(): String = get("commands.help")
+    fun getHelp(): Component = get("commands.help")
 
     fun getCheckSelf(
         offenseLevel: Int,
         deaths: Int,
         max: Int,
-    ): String =
+    ): Component =
         prefixed(
             "commands.check-self",
             "offense_level" to offenseLevel,
@@ -86,7 +83,7 @@ class Messages(
         offenseLevel: Int,
         deaths: Int,
         max: Int,
-    ): String =
+    ): Component =
         prefixed(
             "commands.check-other",
             "player" to player,
@@ -98,35 +95,35 @@ class Messages(
     fun getCheckBanned(
         player: String,
         ban: BanRecord,
-    ): String =
+    ): Component =
         prefixed(
             "commands.check-banned",
             "player" to player,
             "return_time" to TimeUtil.formatInstant(ban.endTime),
         )
 
-    fun getResetSuccess(player: String): String = prefixed("commands.reset-success", "player" to player)
+    fun getResetSuccess(player: String): Component = prefixed("commands.reset-success", "player" to player)
 
-    fun getPardonSuccess(player: String): String = prefixed("commands.pardon-success", "player" to player)
+    fun getPardonSuccess(player: String): Component = prefixed("commands.pardon-success", "player" to player)
 
-    fun getPardonNotBanned(player: String): String = prefixed("commands.pardon-not-banned", "player" to player)
+    fun getPardonNotBanned(player: String): Component = prefixed("commands.pardon-not-banned", "player" to player)
 
-    fun getPardonNotification(): String = prefixed("commands.pardon-notification")
+    fun getPardonNotification(): Component = prefixed("commands.pardon-notification")
 
-    fun getReloadSuccess(): String = prefixed("commands.reload-success")
+    fun getReloadSuccess(): Component = prefixed("commands.reload-success")
 
-    fun getNoPermission(): String = prefixed("errors.no-permission")
+    fun getNoPermission(): Component = prefixed("errors.no-permission")
 
-    fun getPlayerNotFound(player: String): String = prefixed("errors.player-not-found", "player" to player)
+    fun getPlayerNotFound(player: String): Component = prefixed("errors.player-not-found", "player" to player)
 
-    fun getInvalidUsage(usage: String): String = prefixed("errors.invalid-usage", "usage" to usage)
+    fun getInvalidUsage(usage: String): Component = prefixed("errors.invalid-usage", "usage" to usage)
 
     // Shared Lives messages
     fun getPoolStatus(
         pool: String,
         lives: Int,
         max: Int,
-    ): String =
+    ): Component =
         prefixed(
             "shared-lives.pool-status",
             "pool" to pool,
@@ -137,38 +134,66 @@ class Messages(
     fun getLifeAdded(
         lives: Int,
         max: Int,
-    ): String = prefixed("shared-lives.life-added", "lives" to lives, "max" to max)
+    ): Component = prefixed("shared-lives.life-added", "lives" to lives, "max" to max)
 
     fun getLifeConsumed(
         lives: Int,
         max: Int,
-    ): String = prefixed("shared-lives.life-consumed", "lives" to lives, "max" to max)
+    ): Component = prefixed("shared-lives.life-consumed", "lives" to lives, "max" to max)
 
-    fun getPoolEmpty(): String = prefixed("shared-lives.pool-empty")
+    fun getPoolEmpty(): Component = prefixed("shared-lives.pool-empty")
 
-    fun getPoolFull(max: Int): String = prefixed("shared-lives.pool-full", "max" to max)
+    fun getPoolFull(max: Int): Component = prefixed("shared-lives.pool-full", "max" to max)
 
-    fun getNoPool(): String = prefixed("shared-lives.no-pool")
+    fun getNoPool(): Component = prefixed("shared-lives.no-pool")
 
-    fun getTeamCreated(team: String): String = prefixed("shared-lives.team-created", "team" to team)
+    fun getTeamCreated(team: String): Component = prefixed("shared-lives.team-created", "team" to team)
 
-    fun getTeamJoined(team: String): String = prefixed("shared-lives.team-joined", "team" to team)
+    fun getTeamJoined(team: String): Component = prefixed("shared-lives.team-joined", "team" to team)
 
-    fun getTeamLeft(): String = prefixed("shared-lives.team-left")
+    fun getTeamLeft(): Component = prefixed("shared-lives.team-left")
 
-    fun getTeamExists(): String = prefixed("shared-lives.team-exists")
+    fun getTeamExists(): Component = prefixed("shared-lives.team-exists")
 
-    fun getTeamNotFound(team: String): String = prefixed("shared-lives.team-not-found", "team" to team)
+    fun getTeamNotFound(team: String): Component = prefixed("shared-lives.team-not-found", "team" to team)
 
-    fun getTeamsDisabled(): String = prefixed("shared-lives.teams-disabled")
+    fun getTeamsDisabled(): Component = prefixed("shared-lives.teams-disabled")
 
     fun getSharedLivesKickMessage(
         duration: Duration,
         returnTime: String,
-    ): String =
+    ): Component =
         get(
             "shared-lives.kick-message",
             "duration" to TimeUtil.formatDuration(duration),
             "return_time" to returnTime,
         )
+
+    /**
+     * Formats the template before placeholder replacement, matching the previous
+     * colorize-then-replace order. Replacement values are plain text unless the
+     * caller already built a [Component].
+     */
+    private fun render(
+        raw: String,
+        replacements: Array<out Pair<String, Any>> = emptyArray(),
+    ): Component {
+        var rendered = ColorUtil.component(raw)
+        for ((key, value) in replacements) {
+            val replacement =
+                when (value) {
+                    is Component -> value
+                    else -> Component.text(value.toString())
+                }
+            rendered =
+                rendered.replaceText(
+                    TextReplacementConfig
+                        .builder()
+                        .matchLiteral("{$key}")
+                        .replacement(replacement)
+                        .build(),
+                )
+        }
+        return rendered
+    }
 }

@@ -1,5 +1,9 @@
 # DeathBan Pro Messages
-# Supports legacy color codes (&c, &a, etc.)
+# Parsed as MiniMessage (<red>, <bold>, <#ff5555>).
+# If a value contains legacy color codes (&c, §c, and the other & / § codes,
+# including the §x hex form), it is read with the legacy serializer instead,
+# so existing configs keep their colors.
+# Placeholders such as {player} are inserted as plain text.
 # Placeholders: {player}, {duration}, {offense_level}, {deaths}, {max}, {return_time}, {remaining}
 
 prefix: "&8[&cDeathBan&8]&r "

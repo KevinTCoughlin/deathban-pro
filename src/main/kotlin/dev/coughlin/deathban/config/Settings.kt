@@ -12,6 +12,8 @@ enum class BanMode {
 class Settings(
     config: FileConfiguration,
 ) : OffenseConfig {
+    private val errors = mutableListOf<String>()
+
     val debug: Boolean = config.getBoolean("debug", false)
     val updateCheck: Boolean = config.getBoolean("update-check", true)
     val metrics: Boolean = config.getBoolean("metrics", true)
@@ -21,39 +23,33 @@ class Settings(
         when (config.getString("mode")?.lowercase()) {
             null, "individual" -> BanMode.INDIVIDUAL
             "shared" -> BanMode.SHARED
-            else -> throw IllegalArgumentException("mode must be 'individual' or 'shared'")
+            else -> {
+                reject("mode must be 'individual' or 'shared'")
+                BanMode.INDIVIDUAL
+            }
         }
 
     // Shared lives configuration
-    val sharedLivesMax: Int =
-        config
-            .getInt("shared-lives.max-lives", 20)
-            .also { require(it > 0) { "shared-lives.max-lives must be greater than 0" } }
+    val sharedLivesMax: Int = positive("shared-lives.max-lives", config.getInt("shared-lives.max-lives", 20))
     val sharedLivesDefault: Int =
-        config
-            .getInt("shared-lives.default-lives", 10)
-            .also { require(it in 0..sharedLivesMax) { "shared-lives.default-lives must be between 0 and $sharedLivesMax" } }
+        config.getInt("shared-lives.default-lives", 10).also { value ->
+            if (value !in 0..sharedLivesMax) {
+                reject("shared-lives.default-lives must be between 0 and $sharedLivesMax")
+            }
+        }
     val sharedLivesAllowTeams: Boolean = config.getBoolean("shared-lives.allow-teams", true)
-    val sharedLivesEmptyPoolBan: Duration =
-        TimeUtil.parseDuration(
-            config.getString("shared-lives.empty-pool-ban") ?: "1h",
-        )
+    val sharedLivesEmptyPoolBan: Duration = duration("shared-lives.empty-pool-ban", config.getString("shared-lives.empty-pool-ban") ?: "1h")
 
     override val rollingWindowEnabled: Boolean = config.getBoolean("rolling-window.enabled", true)
-    override val rollingWindowDuration: Duration =
-        TimeUtil.parseDuration(
-            config.getString("rolling-window.duration") ?: "24h",
-        )
-    override val maxDeathsInWindow: Int =
-        config
-            .getInt("rolling-window.max-deaths", 3)
-            .also { require(it > 0) { "rolling-window.max-deaths must be greater than 0" } }
+    override val rollingWindowDuration: Duration = duration("rolling-window.duration", config.getString("rolling-window.duration") ?: "24h")
+    override val maxDeathsInWindow: Int = positive("rolling-window.max-deaths", config.getInt("rolling-window.max-deaths", 3))
 
     val banDurations: Map<Int, Duration> = loadBanDurations(config)
 
     override val offenseResetEnabled: Boolean = config.getBoolean("offense-reset.enabled", true)
     override val offenseResetPeriod: Duration =
-        TimeUtil.parseDuration(
+        duration(
+            "offense-reset.clean-period",
             config.getString("offense-reset.clean-period") ?: "168h",
         )
 
@@ -67,17 +63,34 @@ class Settings(
     val themeSoundsEnabled: Boolean = config.getBoolean("theme-sounds", true)
     val themeParticlesEnabled: Boolean = config.getBoolean("theme-particles", true)
 
+    init {
+        if (errors.isNotEmpty()) {
+            throw IllegalArgumentException(errors.joinToString(prefix = "Invalid configuration:\n", separator = "\n"))
+        }
+    }
+
     private fun loadBanDurations(config: FileConfiguration): Map<Int, Duration> {
         val section = config.getConfigurationSection("ban-durations") ?: return defaultBanDurations()
-        val durations =
-            section.getKeys(false).associate { key ->
-                val level = key.toIntOrNull()
-                require(level != null && level > 0) { "ban-durations keys must be positive offense levels: '$key'" }
-                val duration = TimeUtil.parseDuration(section.getString(key) ?: "1h")
-                level to duration
+        val keys = section.getKeys(false)
+        if (keys.isEmpty()) {
+            reject("ban-durations must contain at least one offense level")
+            return defaultBanDurations()
+        }
+        val durations = linkedMapOf<Int, Duration>()
+        for (key in keys) {
+            val level = key.toIntOrNull()
+            if (level == null || level <= 0) {
+                reject("ban-durations keys must be positive offense levels: '$key'")
+                continue
             }
-        require(durations.isNotEmpty()) { "ban-durations must contain at least one offense level" }
-        return durations
+            val raw = section.getString(key) ?: "1h"
+            try {
+                durations[level] = TimeUtil.parseDuration(raw)
+            } catch (e: IllegalArgumentException) {
+                reject("ban-durations.$key: ${e.message}")
+            }
+        }
+        return durations.ifEmpty { defaultBanDurations() }
     }
 
     private fun defaultBanDurations() =
@@ -88,6 +101,29 @@ class Settings(
             4 to Duration.ofHours(72),
             5 to Duration.ofHours(168),
         )
+
+    private fun positive(
+        path: String,
+        value: Int,
+    ): Int {
+        if (value <= 0) reject("$path must be greater than 0")
+        return value
+    }
+
+    private fun duration(
+        path: String,
+        raw: String,
+    ): Duration =
+        try {
+            TimeUtil.parseDuration(raw)
+        } catch (e: IllegalArgumentException) {
+            reject("$path: ${e.message}")
+            Duration.ofHours(1)
+        }
+
+    private fun reject(message: String) {
+        errors += message
+    }
 
     fun getBanDuration(offenseLevel: Int): Duration =
         banDurations[offenseLevel]

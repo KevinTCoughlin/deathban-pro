@@ -1,5 +1,8 @@
 # DeathBan Pro Configuration
 # https://github.com/kevintcoughlin/deathban-pro
+#
+# Player-facing text lives in messages.yml.
+# Those strings are parsed as MiniMessage. Legacy & and § color codes still work.
 
 # Enable debug logging
 debug: false

@@ -2,13 +2,18 @@ package dev.coughlin.deathban.listener
 
 import dev.coughlin.deathban.config.Messages
 import dev.coughlin.deathban.data.PlayerDataManager
+import dev.coughlin.deathban.util.ColorUtil
+import io.papermc.paper.connection.PlayerConfigurationConnection
+import io.papermc.paper.connection.PlayerConnection
+import io.papermc.paper.connection.PlayerLoginConnection
+import io.papermc.paper.event.connection.PlayerConnectionValidateLoginEvent
+import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent
 import org.bukkit.event.player.PlayerJoinEvent
-import org.bukkit.event.player.PlayerLoginEvent
 import org.bukkit.plugin.Plugin
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
@@ -17,13 +22,13 @@ class JoinListener(
     private val plugin: Plugin,
     private val messages: Messages,
     private val dataManager: PlayerDataManager,
-    var updateNotification: String? = null,
+    var updateNotification: Component? = null,
 ) : Listener {
     private val expiredBanReturns = ConcurrentHashMap.newKeySet<UUID>()
 
     /**
-     * Pre-load player data from disk on the async login thread so that
-     * the subsequent [onPlayerLogin] (main thread) never touches the filesystem.
+     * Pre-load player data on the async login thread so the connection
+     * validate handler never touches the filesystem.
      */
     @EventHandler(priority = EventPriority.MONITOR)
     fun onAsyncPreLogin(event: AsyncPlayerPreLoginEvent) {
@@ -31,29 +36,30 @@ class JoinListener(
         dataManager.preload(event.uniqueId)
     }
 
+    /**
+     * Deny an active death ban before the player enters the world.
+     *
+     * Paper calls this during login and again when configuration finishes, both
+     * after [onAsyncPreLogin]. Expired-ban cleanup is idempotent, so the second
+     * call does not record history or the return title twice. This does not call
+     * [PlayerConnectionValidateLoginEvent.allow], which would skip the server's own checks.
+     */
     @EventHandler(priority = EventPriority.HIGHEST)
-    fun onPlayerLogin(event: PlayerLoginEvent) {
-        val data = dataManager.get(event.player.uniqueId) ?: return
+    fun onConnectionValidate(event: PlayerConnectionValidateLoginEvent) {
+        val playerId = playerId(event.connection) ?: return
+        val data = dataManager.get(playerId) ?: return
 
-        // Track whether a ban existed before clearing
         val hadBan = data.currentBan != null
-
-        // Clear any expired bans first
         data.clearExpiredBan()
 
-        // Check if still banned
         val ban = data.currentBan
         if (ban != null && data.isBanned()) {
-            event.disallow(
-                PlayerLoginEvent.Result.KICK_BANNED,
-                messages.getKickMessage(ban),
-            )
+            event.kickMessage(messages.getKickMessage(ban))
             return
         }
 
-        // If ban was just cleared as expired, persist the cleanup
         if (hadBan && data.currentBan == null) {
-            expiredBanReturns.add(event.player.uniqueId)
+            expiredBanReturns.add(playerId)
             dataManager.saveAsync(data)
         }
     }
@@ -67,13 +73,7 @@ class JoinListener(
         // Show return message if ban just expired
         if (data != null && expiredBanReturns.remove(playerId)) {
             later(playerId, 20L) { online ->
-                online.sendTitle(
-                    messages.getReturnTitle(),
-                    messages.getReturnSubtitle(),
-                    10,
-                    70,
-                    20,
-                )
+                online.showTitle(ColorUtil.title(messages.getReturnTitle(), messages.getReturnSubtitle()))
                 online.sendMessage(messages.getReturnMessage())
             }
         }
@@ -95,6 +95,16 @@ class JoinListener(
                 online.sendMessage(notice)
             }
         }
+    }
+
+    private fun playerId(connection: PlayerConnection): UUID? {
+        val profile =
+            when (connection) {
+                is PlayerLoginConnection -> connection.authenticatedProfile ?: connection.unsafeProfile
+                is PlayerConfigurationConnection -> connection.profile
+                else -> null
+            }
+        return profile?.id
     }
 
     private fun later(

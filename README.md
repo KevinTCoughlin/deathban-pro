@@ -106,6 +106,10 @@ offense-reset:
   clean-period: 168h  # 7 days
 ```
 
+## Messages
+
+Player-facing text lives in `plugins/DeathBanPro/messages.yml`. Each value is parsed as MiniMessage (`<red>`, `<bold>`, `<#ff5555>`). When a value contains legacy color codes (`&c`, `§c`, and the other standard `&` / `§` codes, including the `§x` hex form), DeathBan Pro reads it with Adventure's legacy serializer instead. Existing configs keep the same colors. Placeholders such as `{player}` and `{duration}` are inserted as plain text, so a player name cannot change the message's formatting.
+
 ## Ban history
 
 Use `/deathban history <player> [page]` with `deathban.admin` to see the latest 100 events, newest first, ten per page. Ban, expiry, pardon, and reset events survive restarts and offense resets. Records include the original cause, duration, offense level, shared pool, and administrator name when available. Expirations are recorded when login, history lookup, or a later ban/reset discovers them, using the original expiry time. Earlier events removed by older versions cannot be reconstructed.
